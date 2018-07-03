@@ -1,0 +1,14 @@
+{
+  "name": "networkingprototype",
+  "version": "1.0.0",
+  "description": "threejs prototype",
+  "main": "app.ts",
+  "scripts": {
+    "compile": "tsc && rollup -c",
+    "dev": "tsc && rollup -c -w && http-server -S",
+    "start": "tsc && rollup -c && http-server -S",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
