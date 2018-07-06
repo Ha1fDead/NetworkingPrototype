@@ -4,11 +4,8 @@
   "description": "threejs prototype",
   "main": "app.ts",
   "scripts": {
-    "compile": "tsc && rollup -c",
-    "dev": "tsc && rollup -c -w && http-server -S",
-    "start": "tsc && rollup -c && http-server -S",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "node cgi/server/server.js"
+    "compile": "tsc -p ./src/client/tsconfig.json && tsc -p ./src/server/tsconfig.json",
+    "dev": "tsc -p ./src/client/tsconfig.json -w && tsc -p ./src/server/tsconfig.json -w"
   },
   "author": "",
   "license": "ISC",
