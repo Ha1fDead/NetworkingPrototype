@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "allowJs": false,
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "outDir": "../../cgi/server/",
+        "preserveConstEnums": true,
+        "pretty": true,
+		"removeComments": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "esnext",
+    },
+    "include": [
+        "./**/*"
+    ]
+}

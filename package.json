@@ -7,8 +7,14 @@
     "compile": "tsc && rollup -c",
     "dev": "tsc && rollup -c -w && http-server -S",
     "start": "tsc && rollup -c && http-server -S",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "node cgi/server/server.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^4.16.0",
+    "@types/node": "^10.5.2",
+    "express": "^4.16.3"
+  }
 }
