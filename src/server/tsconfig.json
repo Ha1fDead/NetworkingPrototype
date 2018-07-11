@@ -5,7 +5,7 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "noImplicitAny": true,
-        "outDir": "../../cgi/server/",
+        "outDir": "../../cgi/",
         "preserveConstEnums": true,
         "pretty": true,
 		"removeComments": true,

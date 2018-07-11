@@ -5,7 +5,7 @@
         "module": "es2015",
         "moduleResolution": "node",
         "noImplicitAny": true,
-        "outDir": "../../cgi/client/",
+        "outDir": "../../cgi/",
         "preserveConstEnums": true,
         "pretty": true,
         "removeComments": true,

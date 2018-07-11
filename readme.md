@@ -11,6 +11,7 @@ Goal:
 - Support online and offline interactions, update online environment when network is achieved
 - Minimize network utilization for a target "2G" or "3G" experience
 - Pseudo-database replication
+- Learn how to stress test a networked app
 
 - Test WebWorkers with performance and networking implications
 
@@ -36,4 +37,17 @@ Unknowns:
 
 - Lock-step processing?
 
-asdf
+The actual fully-fledge game implementation:
+
+- maintain ongoing game state connections for an arbitrary number of games
+- sync users game states
+- handle messaging / video contexts
+- sync game state to database
+- fire backups appropriately
+- fire AI scripts
+
+## Inspiration
+
+https://github.com/mdn/samples-server/tree/master/s/websocket-chat
+
+https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications
