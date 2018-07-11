@@ -12,6 +12,7 @@ Goal:
 - Minimize network utilization for a target "2G" or "3G" experience
 - Pseudo-database replication
 - Learn how to stress test a networked app
+- Learn how to write automated scripts that prevent leaking sensitive data (Server scripts, obfuscation, etc.)
 
 - Test WebWorkers with performance and networking implications
 
@@ -48,6 +49,28 @@ The actual fully-fledge game implementation:
 
 ## Inspiration
 
-https://github.com/mdn/samples-server/tree/master/s/websocket-chat
+[mdn example github](https://github.com/mdn/samples-server/tree/master/s/websocket-chat)
 
-https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications
+[actual mdn tutorial for above link](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications)
+
+## Problems
+
+With shared code directory, I cannot server the naive `client` directory directly. This is because client references the shared directory, which is not a child.
+
+Source Directory:
+
+- src
+  - client
+  - server
+  - shared
+
+CGI directory:
+
+- cgi
+  - client
+  - server
+  - shared
+
+Target behavior is browser can request /dist/client and /dist/shared as public files which map to /cgi/client and /cgi/shared directly.
+
+This doesn't work because the import path in client/app.js is to `./../shared/constants`, or `~/shared/constants` if it was mapped from root.

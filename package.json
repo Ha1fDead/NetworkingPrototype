@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "tsc -p ./src/client/tsconfig.json && tsc -p ./src/server/tsconfig.json",
     "dev": "tsc -p ./src/client/tsconfig.json -w && tsc -p ./src/server/tsconfig.json -w",
-    "start": "node ./cgi/server/server.js"
+    "start": "node ./server/cgi/server/server.js"
   },
   "author": "",
   "license": "ISC",
