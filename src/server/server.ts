@@ -4,7 +4,7 @@ import * as Path from 'path';
 import * as fs from 'fs';
 import * as https from 'https';
 import * as http from 'http';
-//import * as websocket from 'websocket';
+import * as websocket from 'websocket';
 
 const PUBLIC_DIRECTORY = '../../../www';
 const PUBLIC_DIRECTORY_FULL_PATH = Path.join(__dirname, PUBLIC_DIRECTORY);
@@ -35,6 +35,28 @@ export class HttpServer {
 			res.writeHead(301, { "Location": redirectUrl });
 			res.end();
 		}).listen(SERVER_INSECURE_PORT);
+
+		var wsServer = new websocket.server({
+			httpServer: this.httpServer,
+			autoAcceptConnections: true // You should use false here!
+		});
+
+		wsServer.on('connect', (connection) => {
+			console.log('connected websocket!');
+
+			connection.on('message', (data) => {
+				console.log('received data from connection!');
+				connection.sendUTF("here's some data from server!");
+			});
+		});
+
+		wsServer.on('close', (request) => {
+			console.log('request closed');
+		});
+
+		wsServer.on('request', (request) => {
+			console.log('ws request?');
+		});
 
 		this.httpsServer = https.createServer(certificate, server);
 		this.httpsServer.listen(SERVER_SECURE_PORT);
