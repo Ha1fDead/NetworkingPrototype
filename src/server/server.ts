@@ -45,7 +45,7 @@ export class HttpServer {
 			console.log('connected websocket!');
 
 			connection.on('message', (data) => {
-				console.log('received data from connection!');
+				console.log('received data from connection!', data);
 				connection.sendUTF("here's some data from server!");
 			});
 		});
