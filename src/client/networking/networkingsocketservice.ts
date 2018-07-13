@@ -13,12 +13,16 @@ enum SOCKET_READY_STATE {
 	CLOSED = 3
 }
 
+/**
+ * Tracks requests that are currently being processed from the client to the server
+ */
 interface VClientRequestTracker<TRequest, TResponse> {
-	RequestData: VClientRequestDTO<TRequest>;
+	RequestId: number;
+
+	RequestData: TRequest;
 
 	HasSent: boolean;
 
-	// how do I get concrete type info here...
 	Promise: DeferredPromise<TResponse>;
 }
 
@@ -28,6 +32,7 @@ interface VClientRequestTracker<TRequest, TResponse> {
 export class NetworkingSocketService {
 	private clientId!: number | null;
 
+	// how do I get concrete type info here...
 	private requestTrackers: VClientRequestTracker<any,any>[];
 
 	/**
@@ -60,7 +65,7 @@ export class NetworkingSocketService {
 		if(serverRequestId === undefined) {
 			if(this.clientId === null) {
 				this.clientId = serverMessage.ClientId;
-				console.log(`Received client id from server: ${this.clientId}`);
+				this.SendQueuedRequests();
 			}
 
 			// this is a server push data
@@ -68,7 +73,7 @@ export class NetworkingSocketService {
 			console.log(`we received push data from the server, but cannot handle this case yet!`, event.data);
 		} else {
 			// this is a response
-			let request = this.requestTrackers.find(reqTracker => reqTracker.RequestData.RequestId === serverRequestId);
+			let request = this.requestTrackers.find(reqTracker => reqTracker.RequestId === serverRequestId);
 			if(request === undefined) {
 				throw new Error(`We received a request response from the server, but no associated request with id ${serverRequestId} could be found`);
 			}
@@ -81,10 +86,6 @@ export class NetworkingSocketService {
 
 	private OnSocketOpen(event: Event): void {
 		console.log('socket opened', event);
-
-		if(this.requestTrackers.filter(x => x.HasSent).length > 0) {
-			throw new Error('there are pending requests that have not been handled.');
-		}
 	}
 
 	/**
@@ -104,6 +105,20 @@ export class NetworkingSocketService {
 		console.log('socket error', event);
 	}
 
+	private SendQueuedRequests(): void {
+		if(this.clientId === null) {
+			throw new Error('Cannot send request tracker without a client id');
+		}
+
+		if(this.websocket.readyState !== SOCKET_READY_STATE.OPEN) {
+			throw new Error('Cannot send request tracker if the websocket is not currently open');
+		}
+
+		for(let queuedReq of this.requestTrackers.filter(track => track.HasSent === false)) {
+			this.SendRequestTracker(queuedReq);
+		}
+	}
+
 	/**
 	 * 
 	 * @param data to be sent to the server
@@ -111,32 +126,42 @@ export class NetworkingSocketService {
 	public SendData<TRequest, TResponse>(data: TRequest): Promise<TResponse> {
 		let deferredPromise = new DeferredPromise<TResponse>();
 
-		if(this.clientId === null) {
-			throw new Error(`The connection is open, but we don't have a connection id yet!`);
-		}
-
-		let request: VClientRequestDTO<TRequest> = {
-			ClientId: this.clientId,
-			RequestId: this.GetUniqueRequestId(),
-			RequestData: data
-		};
-
+		let shouldSendImmediately = this.websocket.readyState === SOCKET_READY_STATE.OPEN && this.clientId !== null;
 		let requestTracker: VClientRequestTracker<TRequest, TResponse> = {
-			RequestData: request,
-			HasSent: this.websocket.readyState === SOCKET_READY_STATE.OPEN,
+			RequestId: this.GetUniqueRequestId(),
+			RequestData: data,
+			HasSent: shouldSendImmediately,
 			Promise: deferredPromise
 		};
 
 		this.requestTrackers.push(requestTracker);
-		if(requestTracker.HasSent) {
-			let str = JSON.stringify(request);
-			this.websocket.send(str);
-		}
-		else {
+		if(shouldSendImmediately) {
+			this.SendRequestTracker(requestTracker);
+		} else {
 			console.log('could not send data because socket is not open yet. Data will be sent after connection is reopened');
 		}
 
 		return deferredPromise.Promise;
+	}
+
+	private SendRequestTracker<TRequest, TResponse>(requestToSend: VClientRequestTracker<TRequest, TResponse>): void {
+		if(this.clientId === null) {
+			throw new Error('Cannot send request tracker without a client id');
+		}
+
+		if(this.websocket.readyState !== SOCKET_READY_STATE.OPEN) {
+			throw new Error('Cannot send request tracker if the websocket is not currently open');
+		}
+
+		requestToSend.HasSent = true;
+		let requestDTO: VClientRequestDTO<TRequest> = {
+			ClientId: this.clientId,
+			RequestId: requestToSend.RequestId,
+			RequestData: requestToSend.RequestData
+		};
+
+		let stringified = JSON.stringify(requestDTO);
+		this.websocket.send(stringified);
 	}
 
 	private uniqueRequestId = 0;

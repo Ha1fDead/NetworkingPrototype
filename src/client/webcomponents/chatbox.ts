@@ -30,6 +30,7 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 			if(event.key === "Enter") {
 				event.preventDefault();
 				let fullText = textInput.value;
+				textInput.value = '';
 				this.HandleSubmitMessage(fullText);
 			}
 		};
@@ -43,7 +44,7 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 		while (ulElement.firstChild) {
 			ulElement.removeChild(ulElement.firstChild);
 		}
-		
+
 		for(let msg of messages) {
 			let li = document.createElement('li');
 			li.innerText = `${msg.MessageId} - ${msg.Sent} - ${msg.Received} - ${msg.Contents}`;
