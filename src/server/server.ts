@@ -1,3 +1,6 @@
+import { VClientRequestDTO } from './../shared/networkmodels/vclientrequest';
+import { VServerMessageDTO } from './../shared/networkmodels/vservermessage';
+import { Message } from './../shared/message';
 import { SERVER_SECURE_PORT, SERVER_INSECURE_PORT } from './../shared/constants';
 import * as express from 'express';
 import * as Path from 'path';
@@ -44,9 +47,27 @@ export class HttpServer {
 		wsServer.on('connect', (connection) => {
 			console.log('connected websocket!');
 
+			let initialConnectMessage: VServerMessageDTO = {
+				ClientId: this.getUniqueClientId(),
+				RequestId: undefined,
+				Payload: undefined
+			};
+
+			let strData = JSON.stringify(initialConnectMessage);
+			connection.send(strData);
 			connection.on('message', (data) => {
-				console.log('received data from connection!', data);
-				connection.sendUTF("here's some data from server!");
+				if(data.utf8Data === undefined) {
+					throw new Error('I dont support this use case yet');
+				}
+
+				let request = <VClientRequestDTO<Message>>JSON.parse(data.utf8Data);
+				let message = request.RequestData;
+				message.Received = new Date();
+				message.SenderId = 999; // eventually replace with "UserId" of the logged-in-user
+				message.MessageId = this.getMessageUUID();
+
+				let response = this.GenerateResponse(request.ClientId, request.RequestId, message);
+				connection.send(JSON.stringify(response));
 			});
 		});
 
@@ -60,6 +81,26 @@ export class HttpServer {
 
 		this.httpsServer = https.createServer(certificate, server);
 		this.httpsServer.listen(SERVER_SECURE_PORT);
+	}
+
+	private numClients: number = 0;
+	private getUniqueClientId(): number {
+		this.numClients++;
+		return this.numClients;
+	}
+
+	private numMessages: number = 0;
+	private getMessageUUID(): number {
+		this.numMessages++;
+		return this.numMessages;
+	}
+
+	private GenerateResponse(clientId: number, requestId: number, data: any): VServerMessageDTO {
+		return {
+			ClientId: clientId,
+			RequestId: requestId,
+			Payload: data
+		};
 	}
 }
 

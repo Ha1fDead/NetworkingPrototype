@@ -1,5 +1,5 @@
-import { Message } from './../../shared/message.js';
-import { MessagingService } from './../messagingservice.js';
+import { Message } from '../../shared/message.js';
+import { MessagingService } from '../messagingservice.js';
 import { VCustomElement } from './vcustomelement.js';
 const chatTemplate = document.createElement('template');
 chatTemplate.innerHTML = `

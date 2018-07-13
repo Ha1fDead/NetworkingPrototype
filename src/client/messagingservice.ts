@@ -1,31 +1,17 @@
-import { Message } from './../shared/message';
-import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from '../shared/constants.js';
+import { Message } from '../shared/message';
+import { NetworkingSocketService } from './networking/networkingsocketservice.js';
+
 
 export class MessagingService {
-	private messagesSent = 0;
-	private websocket: WebSocket;
+	private messages: Message[] = [];
+	private networkingSocketService: NetworkingSocketService;
 
 	constructor() {
-		this.websocket = new WebSocket(`ws://${SERVER_HOSTNAME}:${SERVER_INSECURE_PORT}/${PATH_CHAT}`);
-		this.websocket.onopen = (event: Event) => {
-			console.log('socket opened', event);
-		};
-
-		this.websocket.onclose = (event: CloseEvent) => {
-			console.log('socket closed', event);
-		};
-
-		this.websocket.onerror = (event: Event) => {
-			console.log('ERROR YO', event);
-		}
-
-		this.websocket.onmessage = (message: MessageEvent) => {
-			console.log('received message', message.data);
-		};
+		this.networkingSocketService = new NetworkingSocketService();
 	}
 
-	public SendMessage(message: Message): void {
-		let stringContents = JSON.stringify(message);
-		this.websocket.send(stringContents);
+	public async SendMessage(message: Message): Promise<void> {
+		let res = await this.networkingSocketService.SendData<Message, Message>(message);
+		console.log('in service, got', res);
 	}
 }

@@ -1,7 +1,5 @@
 # Networking Prototype
 
-Readme here!
-
 Prototype Functionality Goals:
 
 - On a failed load, will retry
@@ -9,6 +7,7 @@ Prototype Functionality Goals:
 - Properly implements "paging"
 - Multiple users can send messages simultaneously
 - On connect, receive "Hydration" message list
+- load cached messages from the client
 
 Goal:
 
