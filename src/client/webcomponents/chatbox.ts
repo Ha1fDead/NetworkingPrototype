@@ -4,6 +4,7 @@ import { VCustomElement } from './vcustomelement.js';
 const chatTemplate = document.createElement('template');
 chatTemplate.innerHTML = `
 	<div>
+		<p>Id, sent, received, contents</p>
 		<ul>
 		</ul>
 
@@ -34,7 +35,20 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 		};
 
 		this.messagingService = new MessagingService();
-		console.log('constructed');
+		this.messagingService.RegisterCB(this.OnMessagesUpdate.bind(this));
+	}
+
+	private OnMessagesUpdate(messages: Message[]): void {
+		let ulElement = <HTMLUListElement>(<ShadowRoot>this.shadowRoot).querySelector('ul');
+		while (ulElement.firstChild) {
+			ulElement.removeChild(ulElement.firstChild);
+		}
+		
+		for(let msg of messages) {
+			let li = document.createElement('li');
+			li.innerText = `${msg.MessageId} - ${msg.Sent} - ${msg.Received} - ${msg.Contents}`;
+			ulElement.appendChild(li);
+		}
 	}
 
 	HandleSubmitMessage(message: string): void {
