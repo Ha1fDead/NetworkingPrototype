@@ -1,8 +1,9 @@
+import { NetworkListener } from './networking/networklistener';
 import { Message } from '../shared/message';
 import { NetworkingSocketService } from './networking/networkingsocketservice.js';
 
 
-export class MessagingService {
+export class MessagingService implements NetworkListener {
 	private messages: Message[] = [];
 	private networkingSocketService: NetworkingSocketService;
 
@@ -10,11 +11,19 @@ export class MessagingService {
 
 	constructor() {
 		this.networkingSocketService = new NetworkingSocketService();
+		this.networkingSocketService.RegisterListener(this);
 	}
 
 	public async SendMessage(message: Message): Promise<void> {
 		let res = await this.networkingSocketService.SendData<Message, Message>(message);
 		this.messages.push(res);
+		for(let cb of this.OnMessageUpdateCBS) {
+			cb(this.messages);
+		}
+	}
+
+	OnReceiveServerPushData(data: any): void {
+		this.messages = data;
 		for(let cb of this.OnMessageUpdateCBS) {
 			cb(this.messages);
 		}

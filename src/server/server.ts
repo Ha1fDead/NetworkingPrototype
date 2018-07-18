@@ -22,6 +22,11 @@ const certificate = {
     cert:  fs.readFileSync(SERVER_CERT_PATH)
 };
 
+interface ConnectionLookup {
+	Connection: websocket.connection;
+	ConnectionId: number;
+}
+
 export class App {
 	private server = new HttpServer();
 }
@@ -30,6 +35,7 @@ export class HttpServer {
 	private httpServer: http.Server;
 	private httpsServer: https.Server;
 	private ChatServer: ChatServer = new ChatServer();
+	private connections: ConnectionLookup[] = [];
 
 	constructor() {
 		let server = express();
@@ -46,15 +52,17 @@ export class HttpServer {
 			autoAcceptConnections: true // You should use false here!
 		});
 
-		wsServer.on('connect', (connection) => {
-			this.SendInitialConnectResponse(connection);
-			connection.on('message', (data) => {
-				this.HandleNewMessage(connection, data);
-			});
-		});
+		wsServer.on('connect', this.HandleNewConnection.bind(this));
 
 		wsServer.on('close', (request) => {
-			console.log('request closed');
+			let closedConnections = this.connections.filter(conn => conn.Connection.connected === false);
+			this.connections = this.connections.filter(conn => conn.Connection.connected);
+
+			for(let closedConn of closedConnections) {
+				console.log(`request closed ${closedConn.ConnectionId}`);
+			}
+
+			// broadcast update to all clients that a person has "Logged Out"
 		});
 
 		wsServer.on('request', (request) => {
@@ -63,6 +71,28 @@ export class HttpServer {
 
 		this.httpsServer = https.createServer(certificate, server);
 		this.httpsServer.listen(SERVER_SECURE_PORT);
+	}
+
+	private HandleNewConnection(connection: websocket.connection): void {
+		let connId = this.getUniqueClientId();
+		this.connections.push({
+			Connection: connection,
+			ConnectionId: connId
+		});
+
+		let initialConnectMessage: VServerMessageDTO = {
+			ClientId: connId,
+			RequestId: undefined,
+			Payload: undefined
+		};
+
+		console.log(`New Client connected: ${initialConnectMessage.ClientId}`);
+		let strData = JSON.stringify(initialConnectMessage);
+		connection.send(strData);
+
+		connection.on('message', (data) => {
+			this.HandleNewMessage(connection, data);
+		});
 	}
 	
 	private HandleNewMessage(connection: websocket.connection, data: websocket.IMessage): void {
@@ -76,6 +106,7 @@ export class HttpServer {
 		this.ChatServer.StoreMessage(message);
 		let response = this.GenerateResponse(request.ClientId, request.RequestId, message);
 		connection.send(JSON.stringify(response));
+		this.UpdateAllClients();
 	}
 
 	private numClients: number = 0;
@@ -92,16 +123,15 @@ export class HttpServer {
 		};
 	}
 
-	private SendInitialConnectResponse(connection: websocket.connection): void {
-		let initialConnectMessage: VServerMessageDTO = {
-			ClientId: this.getUniqueClientId(),
-			RequestId: undefined,
-			Payload: undefined
-		};
-
-		console.log(`New Client connected: ${initialConnectMessage.ClientId}`);
-		let strData = JSON.stringify(initialConnectMessage);
-		connection.send(strData);
+	private UpdateAllClients(): void {
+		for(let client of this.connections) {
+			let message: VServerMessageDTO = {
+				ClientId: client.ConnectionId,
+				RequestId: undefined,
+				Payload: this.ChatServer.GetMessages()
+			};
+			client.Connection.sendUTF(JSON.stringify(message));
+		}
 	}
 }
 

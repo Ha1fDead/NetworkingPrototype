@@ -24,6 +24,7 @@ Goal:
 - Test RxJS, Websockets, and WebWorkers
 - Determine how database is synced from network requests
 - Determine where and how "Background Game Logic" is implemented and synchronized
+- Determine rate limiting
 
 The actual fully-fledge game implementation:
 

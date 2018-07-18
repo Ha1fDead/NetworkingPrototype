@@ -1,7 +1,3 @@
-interface VServerPushData {
-
-}
-
 /**
  * Handles receiving data for a segment of business logic
  * 
@@ -9,9 +5,9 @@ interface VServerPushData {
  * 
  * How does this interact with Serializers / Deserializers?
  */
-interface NetworkListener {
+export interface NetworkListener {
 	/**
 	 * Callback that should be passed into the NetworkService when data is received
 	 */
-	OnReceiveServerPushData(data: VServerPushData): void;
+	OnReceiveServerPushData(data: any): void;
 }

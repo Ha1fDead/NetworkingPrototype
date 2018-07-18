@@ -1,3 +1,4 @@
+import { NetworkListener } from './networklistener';
 import { VClientRequestDTO } from './../../shared/networkmodels/vclientrequest.js';
 import { VServerMessageDTO } from './../../shared/networkmodels/vservermessage.js';
 import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from '../../shared/constants.js';
@@ -40,9 +41,15 @@ export class NetworkingSocketService {
 	 */
 	private websocket!: WebSocket;
 
+	private Listeners: NetworkListener[] = [];
+
 	constructor() {
 		this.requestTrackers = [];
 		this.CreateWebsocket();
+	}
+
+	public RegisterListener(listener: NetworkListener): void {
+		this.Listeners.push(listener);
 	}
 
 	private CreateWebsocket(): void {
@@ -66,11 +73,16 @@ export class NetworkingSocketService {
 			if(this.clientId === null) {
 				this.clientId = serverMessage.ClientId;
 				this.SendQueuedRequests();
+			} else if(serverMessage.Payload !== undefined) {
+				// this is a server push data
+				// determine where to pipe this in via the object
+				for(let listener of this.Listeners) {
+					listener.OnReceiveServerPushData(serverMessage.Payload);
+				}
+				return;
+			} else {
+				console.log(`we received push data from the server, but cannot handle this case yet!`, event.data);
 			}
-
-			// this is a server push data
-			// determine where to pipe this in via the object
-			console.log(`we received push data from the server, but cannot handle this case yet!`, event.data);
 		} else {
 			// this is a response
 			let request = this.requestTrackers.find(reqTracker => reqTracker.RequestId === serverRequestId);
