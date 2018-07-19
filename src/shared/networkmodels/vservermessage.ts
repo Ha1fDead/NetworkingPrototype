@@ -2,7 +2,7 @@ import { ServerActionRPC } from './serveractionenum';
 import { VServerMessageDTO } from './vservermessage';
 import { VNetworkTransmission } from "./vnetworktransmission";
 
-export interface VServerMessageDTO extends VNetworkTransmission {
+export interface VServerMessageDTO<TPayload> extends VNetworkTransmission {
 	/**
 	 * Undefined if the Server is sending push data, otherwise if it is defined this is a response to a request
 	 */
@@ -13,21 +13,21 @@ export interface VServerMessageDTO extends VNetworkTransmission {
 	 */
 	Action: ServerActionRPC | undefined,
 
-	Payload: any
+	Payload: TPayload
 }
 
-export interface VServerPushDTO extends VServerMessageDTO {
+export interface VServerPushDTO<TPayload> extends VServerMessageDTO<TPayload> {
 	Action: ServerActionRPC,
 
 	RequestId: undefined,
 
-	Payload: any
+	Payload: TPayload
 }
 
-export interface VServerResponseDTO extends VServerMessageDTO {
+export interface VServerResponseDTO<TPayload> extends VServerMessageDTO<TPayload> {
 	RequestId: number,
 
 	Action: undefined,
-	
-	Payload: any
+
+	Payload: TPayload
 }

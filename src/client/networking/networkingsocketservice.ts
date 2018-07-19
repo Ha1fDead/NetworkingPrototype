@@ -51,11 +51,11 @@ export class NetworkingSocketService {
 	 * @param event 
 	 */
 	private OnSocketMessage(event: MessageEvent): void {
-		let serverMessage = <VServerMessageDTO>JSON.parse(event.data);
+		let serverMessage = <VServerMessageDTO<any>>JSON.parse(event.data);
 		if(this.IsResponse(serverMessage)) {
-			this.HandleServerResponse(<VServerResponseDTO>serverMessage);
+			this.HandleServerResponse(<VServerResponseDTO<any>>serverMessage);
 		} else {
-			this.HandleServerPush(<VServerPushDTO>serverMessage);
+			this.HandleServerPush(<VServerPushDTO<any>>serverMessage);
 		}
 	}
 
@@ -63,7 +63,7 @@ export class NetworkingSocketService {
 		// don't actually do anything on socket open, since we wait for the Server to send us our Client id.
 	}
 
-	private HandleServerPush(message: VServerPushDTO): void {
+	private HandleServerPush(message: VServerPushDTO<any>): void {
 		if(message.Action === ServerActionRPC.SetClientId) {
 			this.clientId = message.ClientId;
 			this.SendQueuedRequests();
@@ -78,7 +78,7 @@ export class NetworkingSocketService {
 		}
 	}
 
-	private HandleServerResponse(message: VServerResponseDTO): void {
+	private HandleServerResponse(message: VServerResponseDTO<any>): void {
 		let request = this.requestTrackers.find(reqTracker => reqTracker.GetRequestId() === message.RequestId);
 		if(request === undefined) {
 			throw new Error(`We received a request response from the server, but no associated request with id ${message.RequestId} could be found`);
@@ -136,7 +136,7 @@ export class NetworkingSocketService {
 		return requestTracker.GetPromise();
 	}
 
-	private IsResponse(serverMessage: VServerMessageDTO): boolean {
+	private IsResponse(serverMessage: VServerMessageDTO<any>): boolean {
 		return serverMessage.RequestId !== undefined;
 	}
 

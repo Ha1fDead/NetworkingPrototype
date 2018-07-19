@@ -15,7 +15,7 @@ export default class ServerConnection {
 	}
 
 	PushData<TPayload>(action: ServerActionRPC, payload: TPayload | undefined = undefined): void {
-		let initialConnectMessage: VServerPushDTO = {
+		let initialConnectMessage: VServerPushDTO<TPayload | undefined> = {
 			ClientId: this.ClientId,
 			RequestId: undefined,
 			Action: action,
@@ -27,7 +27,7 @@ export default class ServerConnection {
 	}
 
 	SendResponse<TRequest, TPayload>(request: VClientRequestDTO<TRequest>, payload: TPayload): void {
-		let responseMessage: VServerResponseDTO = {
+		let responseMessage: VServerResponseDTO<TPayload> = {
 			ClientId: this.ClientId,
 			Action: undefined,
 			RequestId: request.RequestId,
