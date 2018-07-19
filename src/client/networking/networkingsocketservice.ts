@@ -4,6 +4,7 @@ import { NetworkListener } from './networklistener.js';
 import { VServerMessageDTO } from './../../shared/networkmodels/vservermessage.js';
 import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from '../../shared/constants.js';
 
+const DEFAULT_WEBSOCKET_RETRY_MS = 5000;
 
 /**
  * Responsible for handling all Socket communication
@@ -12,7 +13,7 @@ export class NetworkingSocketService {
 	private clientId!: number | null;
 
 	// how do I get concrete type info here...
-	private requestTrackers: VClientRequestTracker[];
+	private requestTrackers: VClientRequestTracker<any, any>[];
 
 	/**
 	 * Definitely assigned via CreateWebSocket because you cannot reopen a closed websocket
@@ -82,7 +83,6 @@ export class NetworkingSocketService {
 	 */
 	private OnSocketClose(event: CloseEvent): void {
 		console.log('socket closed', event);
-		const DEFAULT_WEBSOCKET_RETRY_MS = 5000;
 		setTimeout(() => {
 			// retrying to connect
 			this.CreateWebsocket();
@@ -113,7 +113,7 @@ export class NetworkingSocketService {
 	 */
 	public SendData<TRequest, TResponse>(data: TRequest): Promise<TResponse> {
 		let shouldSendImmediately = this.websocket.readyState === SOCKET_READY_STATE.OPEN && this.clientId !== null;
-		let requestTracker = new VClientRequestTracker(this.GetUniqueRequestId(), data, shouldSendImmediately);
+		let requestTracker = new VClientRequestTracker<TRequest, TResponse>(this.GetUniqueRequestId(), data, shouldSendImmediately);
 		this.requestTrackers.push(requestTracker);
 
 		if(this.clientId !== null && shouldSendImmediately) {
