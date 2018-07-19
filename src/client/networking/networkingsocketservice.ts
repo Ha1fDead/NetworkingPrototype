@@ -13,7 +13,9 @@ const DEFAULT_WEBSOCKET_RETRY_MS = 5000;
 export class NetworkingSocketService {
 	private clientId!: number | null;
 
-	// how do I get concrete type info here...
+	/**
+	 * I do not like the <any, any> here but cannot think of an alternative
+	 */
 	private requestTrackers: VClientRequestTracker<any, any>[];
 
 	/**
@@ -21,6 +23,9 @@ export class NetworkingSocketService {
 	 */
 	private websocket!: WebSocket;
 
+	/**
+	 * I don't like the <any> here but I cannot think of an alternative
+	 */
 	private Listeners: NetworkListener<any>[] = [];
 
 	constructor() {
