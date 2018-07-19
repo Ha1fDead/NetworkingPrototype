@@ -4,6 +4,10 @@ export default class ChatServer {
 	private numMessages: number = 0;
 
 	constructor() {
+		//this.createDefaultData();
+	}
+
+	private createDefaultData(): void {
 		// proof of concept -- hydrate server messages with dummy data
 		// in the future this would obviously load from database or something
 		let unixMessageStart = new Date().getTime() - (1000 * 60 * 60 * 24 * 30); // one month ago

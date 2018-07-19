@@ -1,3 +1,4 @@
+import { NetworkingSocketService } from './../networking/networkingsocketservice.js';
 import { Message } from '../../shared/message.js';
 import { MessagingService } from '../messagingservice.js';
 import { VCustomElement } from './vcustomelement.js';
@@ -35,7 +36,9 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 			}
 		};
 
-		this.messagingService = new MessagingService();
+		// todo -- figure out inversion of control w/ webcomponents
+		let networkingService = new NetworkingSocketService();
+		this.messagingService = new MessagingService(networkingService);
 		this.messagingService.RegisterCB(this.OnMessagesUpdate.bind(this));
 	}
 

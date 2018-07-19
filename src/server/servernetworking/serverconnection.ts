@@ -23,7 +23,7 @@ export default class ServerConnection {
 		};
 
 		let strData = JSON.stringify(initialConnectMessage);
-		this.Connection.send(strData);
+		this.SendData(strData);
 	}
 
 	SendResponse<TRequest, TPayload>(request: VClientRequestDTO<TRequest>, payload: TPayload): void {
@@ -35,7 +35,7 @@ export default class ServerConnection {
 		};
 
 		let strData = JSON.stringify(responseMessage);
-		this.Connection.send(strData);
+		this.SendData(strData);
 	}
 
 	ShouldCloseConnection(): boolean {
@@ -44,5 +44,12 @@ export default class ServerConnection {
 
 	CloseConnection(serverConnections: ServerConnection[]): void {
 		serverConnections.splice(serverConnections.indexOf(this), 1);
+	}
+
+	private SendData(stringified: string): void {
+		let randomTimeout = Math.random() * 3000;
+		setTimeout(() => {
+			this.Connection.send(stringified);
+		}, randomTimeout);
 	}
 }

@@ -46,6 +46,11 @@ export class VClientRequestTracker<TRequest, TResponse> {
 		};
 
 		let stringified = JSON.stringify(requestDTO);
-		websocket.send(stringified);
+
+		// simulate network latency
+		let randomTimeout = Math.random() * 3000;
+		setTimeout(() => {
+			websocket.send(stringified);
+		}, randomTimeout);
 	}
 }

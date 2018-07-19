@@ -6,12 +6,10 @@ import { NetworkingSocketService } from './networking/networkingsocketservice.js
 
 export class MessagingService implements NetworkListener<Message[]> {
 	private messages: Message[] = [];
-	private networkingSocketService: NetworkingSocketService;
-
 	public OnMessageUpdateCBS: Function[] = [];
 
-	constructor() {
-		this.networkingSocketService = new NetworkingSocketService();
+	constructor(
+		private networkingSocketService: NetworkingSocketService) {
 		this.networkingSocketService.RegisterListener(this);
 	}
 	
