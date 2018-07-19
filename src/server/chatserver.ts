@@ -4,7 +4,28 @@ export default class ChatServer {
 	private numMessages: number = 0;
 
 	constructor() {
+		// proof of concept -- hydrate server messages with dummy data
+		// in the future this would obviously load from database or something
+		let unixMessageStart = new Date().getTime() - (1000 * 60 * 60 * 24 * 30); // one month ago
+		
+		const defaultMessageCount = 1000;
+		const dateOffset = 1000 * 60 * 60; // one hour
+		for(let x = 0; x < defaultMessageCount; x++) {
+			let message = `This is a random message ${x}`;
+			let sDate = new Date(unixMessageStart + (dateOffset * x));
+			let rDate = new Date(unixMessageStart + (dateOffset * x + 100));
+			this.messages.push(this.createdefaultmessage(this.getMessageUUID(), 0, message, sDate, rDate));
+		}
+	}
 
+	private createdefaultmessage(mId: number, sId: number, message: string, sDate: Date, rDate: Date): Message {
+		return {
+			MessageId: mId,
+			SenderId: sId,
+			Contents: message,
+			Sent: sDate,
+			Received: rDate
+		}
 	}
 
 	StoreMessage(message: Message): void {
