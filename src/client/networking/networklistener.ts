@@ -7,11 +7,11 @@ import { ServerActionRPC } from './../../shared/networkmodels/serveractionenum.j
  * 
  * How does this interact with Serializers / Deserializers?
  */
-export interface NetworkListener {
+export interface NetworkListener<TServerPayload> {
 	GetActionsHandledBy(): ServerActionRPC;
 
 	/**
 	 * Callback that should be passed into the NetworkService when data is received
 	 */
-	OnReceiveServerPushData(data: any): void;
+	OnReceiveServerPushData(data: TServerPayload): void;
 }

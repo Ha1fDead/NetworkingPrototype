@@ -4,7 +4,7 @@ import { Message } from '../shared/message';
 import { NetworkingSocketService } from './networking/networkingsocketservice.js';
 
 
-export class MessagingService implements NetworkListener {
+export class MessagingService implements NetworkListener<Message[]> {
 	private messages: Message[] = [];
 	private networkingSocketService: NetworkingSocketService;
 
@@ -27,7 +27,7 @@ export class MessagingService implements NetworkListener {
 		}
 	}
 
-	OnReceiveServerPushData(data: any): void {
+	OnReceiveServerPushData(data: Message[]): void {
 		this.messages = data;
 		for(let cb of this.OnMessageUpdateCBS) {
 			cb(this.messages);

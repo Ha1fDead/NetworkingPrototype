@@ -21,14 +21,14 @@ export class NetworkingSocketService {
 	 */
 	private websocket!: WebSocket;
 
-	private Listeners: NetworkListener[] = [];
+	private Listeners: NetworkListener<any>[] = [];
 
 	constructor() {
 		this.requestTrackers = [];
 		this.CreateWebsocket();
 	}
 
-	public RegisterListener(listener: NetworkListener): void {
+	public RegisterListener<TServerPayload>(listener: NetworkListener<TServerPayload>): void {
 		this.Listeners.push(listener);
 	}
 
@@ -47,15 +47,15 @@ export class NetworkingSocketService {
 	 */
 	private OnSocketMessage(event: MessageEvent): void {
 		let serverMessage = <VServerMessageDTO>JSON.parse(event.data);
-		if(!this.IsResponse(serverMessage)) {
-			this.HandleServerPush(<VServerPushDTO>serverMessage);
-		} else {
+		if(this.IsResponse(serverMessage)) {
 			this.HandleServerResponse(<VServerResponseDTO>serverMessage);
+		} else {
+			this.HandleServerPush(<VServerPushDTO>serverMessage);
 		}
 	}
 
 	private OnSocketOpen(event: Event): void {
-		console.log('socket opened', event);
+		// don't actually do anything on socket open, since we wait for the Server to send us our Client id.
 	}
 
 	private HandleServerPush(message: VServerPushDTO): void {
@@ -70,7 +70,6 @@ export class NetworkingSocketService {
 			for(let listener of listenersForAction) {
 				listener.OnReceiveServerPushData(message.Payload);
 			}
-			return;
 		}
 	}
 
@@ -88,6 +87,7 @@ export class NetworkingSocketService {
 	 * @param event 
 	 */
 	private OnSocketClose(event: CloseEvent): void {
+		// TODO - if a socket closes, we need to requeue all of the requests that were executing.
 		console.log('socket closed', event);
 		setTimeout(() => {
 			// retrying to connect
