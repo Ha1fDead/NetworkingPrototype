@@ -1,31 +1,9 @@
-import { NetworkListener } from './networklistener';
-import { VClientRequestDTO } from './../../shared/networkmodels/vclientrequest.js';
+import { SOCKET_READY_STATE } from './socketstateenum.js';
+import { VClientRequestTracker } from './networkrequesttracker.js';
+import { NetworkListener } from './networklistener.js';
 import { VServerMessageDTO } from './../../shared/networkmodels/vservermessage.js';
 import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from '../../shared/constants.js';
-import DeferredPromise from '../../shared/deferredpromise.js';
 
-/**
- * https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants
- */
-enum SOCKET_READY_STATE {
-	CONNECTION = 0,
-	OPEN = 1,
-	CLOSING = 2,
-	CLOSED = 3
-}
-
-/**
- * Tracks requests that are currently being processed from the client to the server
- */
-interface VClientRequestTracker<TRequest, TResponse> {
-	RequestId: number;
-
-	RequestData: TRequest;
-
-	HasSent: boolean;
-
-	Promise: DeferredPromise<TResponse>;
-}
 
 /**
  * Responsible for handling all Socket communication
@@ -34,7 +12,7 @@ export class NetworkingSocketService {
 	private clientId!: number | null;
 
 	// how do I get concrete type info here...
-	private requestTrackers: VClientRequestTracker<any,any>[];
+	private requestTrackers: VClientRequestTracker[];
 
 	/**
 	 * Definitely assigned via CreateWebSocket because you cannot reopen a closed websocket
@@ -85,14 +63,12 @@ export class NetworkingSocketService {
 			}
 		} else {
 			// this is a response
-			let request = this.requestTrackers.find(reqTracker => reqTracker.RequestId === serverRequestId);
+			let request = this.requestTrackers.find(reqTracker => reqTracker.GetRequestId() === serverRequestId);
 			if(request === undefined) {
 				throw new Error(`We received a request response from the server, but no associated request with id ${serverRequestId} could be found`);
 			}
 
-			// resolve and remove request
-			request.Promise.deferredResolve(serverMessage.Payload);
-			this.requestTrackers.splice(this.requestTrackers.indexOf(request), 1);
+			request.ResolveRequest(serverMessage.Payload, this.requestTrackers);
 		}
 	}
 
@@ -126,8 +102,8 @@ export class NetworkingSocketService {
 			throw new Error('Cannot send request tracker if the websocket is not currently open');
 		}
 
-		for(let queuedReq of this.requestTrackers.filter(track => track.HasSent === false)) {
-			this.SendRequestTracker(queuedReq);
+		for(let queuedReq of this.requestTrackers.filter(track => track.GetHasSent() === false)) {
+			queuedReq.SendRequest(this.clientId, this.websocket);
 		}
 	}
 
@@ -136,44 +112,17 @@ export class NetworkingSocketService {
 	 * @param data to be sent to the server
 	 */
 	public SendData<TRequest, TResponse>(data: TRequest): Promise<TResponse> {
-		let deferredPromise = new DeferredPromise<TResponse>();
-
 		let shouldSendImmediately = this.websocket.readyState === SOCKET_READY_STATE.OPEN && this.clientId !== null;
-		let requestTracker: VClientRequestTracker<TRequest, TResponse> = {
-			RequestId: this.GetUniqueRequestId(),
-			RequestData: data,
-			HasSent: shouldSendImmediately,
-			Promise: deferredPromise
-		};
-
+		let requestTracker = new VClientRequestTracker(this.GetUniqueRequestId(), data, shouldSendImmediately);
 		this.requestTrackers.push(requestTracker);
-		if(shouldSendImmediately) {
-			this.SendRequestTracker(requestTracker);
+
+		if(this.clientId !== null && shouldSendImmediately) {
+			requestTracker.SendRequest(this.clientId, this.websocket);
 		} else {
 			console.log('could not send data because socket is not open yet. Data will be sent after connection is reopened');
 		}
 
-		return deferredPromise.Promise;
-	}
-
-	private SendRequestTracker<TRequest, TResponse>(requestToSend: VClientRequestTracker<TRequest, TResponse>): void {
-		if(this.clientId === null) {
-			throw new Error('Cannot send request tracker without a client id');
-		}
-
-		if(this.websocket.readyState !== SOCKET_READY_STATE.OPEN) {
-			throw new Error('Cannot send request tracker if the websocket is not currently open');
-		}
-
-		requestToSend.HasSent = true;
-		let requestDTO: VClientRequestDTO<TRequest> = {
-			ClientId: this.clientId,
-			RequestId: requestToSend.RequestId,
-			RequestData: requestToSend.RequestData
-		};
-
-		let stringified = JSON.stringify(requestDTO);
-		this.websocket.send(stringified);
+		return requestTracker.GetPromise();
 	}
 
 	private uniqueRequestId = 0;
