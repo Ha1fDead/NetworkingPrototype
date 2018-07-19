@@ -10,6 +10,7 @@ import * as http from 'http';
 import * as websocket from 'websocket';
 import ChatServer from './chatserver';
 import { ServerActionRPC } from '../shared/networkmodels/serveractionenum';
+import ServerConnection from './servernetworking/serverconnection';
 
 const PUBLIC_DIRECTORY = '../../../www';
 const PUBLIC_DIRECTORY_FULL_PATH = Path.join(__dirname, PUBLIC_DIRECTORY);
@@ -23,11 +24,6 @@ const certificate = {
     cert:  fs.readFileSync(SERVER_CERT_PATH)
 };
 
-interface ConnectionLookup {
-	Connection: websocket.connection;
-	ConnectionId: number;
-}
-
 export class App {
 	private server = new HttpServer();
 }
@@ -36,7 +32,7 @@ export class HttpServer {
 	private httpServer: http.Server;
 	private httpsServer: https.Server;
 	private ChatServer: ChatServer = new ChatServer();
-	private connections: ConnectionLookup[] = [];
+	private connections: ServerConnection[] = [];
 
 	constructor() {
 		let server = express();
@@ -56,11 +52,9 @@ export class HttpServer {
 		wsServer.on('connect', this.HandleNewConnection.bind(this));
 
 		wsServer.on('close', (request) => {
-			let closedConnections = this.connections.filter(conn => conn.Connection.connected === false);
-			this.connections = this.connections.filter(conn => conn.Connection.connected);
-
+			let closedConnections = this.connections.filter(conn => conn.ShouldCloseConnection());
 			for(let closedConn of closedConnections) {
-				console.log(`request closed ${closedConn.ConnectionId}`);
+				closedConn.CloseConnection(this.connections);
 			}
 
 			// broadcast update to all clients that a person has "Logged Out"
@@ -76,22 +70,10 @@ export class HttpServer {
 
 	private HandleNewConnection(connection: websocket.connection): void {
 		let connId = this.getUniqueClientId();
-		this.connections.push({
-			Connection: connection,
-			ConnectionId: connId
-		});
-
-		let initialConnectMessage: VServerMessageDTO = {
-			ClientId: connId,
-			RequestId: undefined,
-			Action: ServerActionRPC.SetClientId,
-			Payload: undefined
-		};
-
-		console.log(`New Client connected: ${initialConnectMessage.ClientId}`);
-		let strData = JSON.stringify(initialConnectMessage);
-		connection.send(strData);
-
+		let connectedClient = new ServerConnection(connection, connId);
+		this.connections.push(connectedClient);
+		connectedClient.PushData(ServerActionRPC.SetClientId);
+		connectedClient.PushData(ServerActionRPC.UpdateMessages, this.ChatServer.GetMessages());
 		connection.on('message', (data) => {
 			this.HandleNewMessage(connection, data);
 		});
@@ -101,41 +83,29 @@ export class HttpServer {
 		if(data.utf8Data === undefined) {
 			throw new Error('I dont support this use case yet');
 		}
-
-		// in the future we would map to request handlers
+		
+		/**
+		 * Similar to the client, we would eventually map to Handlers for calling RPCs
+		 */
 		let request = <VClientRequestDTO<Message>>JSON.parse(data.utf8Data);
 		let message = request.RequestData;
 		this.ChatServer.StoreMessage(message);
-		let response = this.GenerateResponse(request.ClientId, request.RequestId, message);
-		connection.send(JSON.stringify(response));
-		this.UpdateAllClients();
+
+		let serverConn = this.connections.find(conn => conn.GetClientId() === request.ClientId);
+		if(serverConn === undefined) {
+			throw new Error('Received a message from a client that does not have a client id!!!');
+		}
+
+		serverConn.SendResponse(request, message);
+		for(let conn of this.connections) {
+			conn.PushData(ServerActionRPC.UpdateMessages, this.ChatServer.GetMessages());
+		}
 	}
 
 	private numClients: number = 0;
 	private getUniqueClientId(): number {
 		this.numClients++;
 		return this.numClients;
-	}
-
-	private GenerateResponse(clientId: number, requestId: number, data: any): VServerMessageDTO {
-		return {
-			ClientId: clientId,
-			RequestId: requestId,
-			Action: undefined,
-			Payload: data
-		};
-	}
-
-	private UpdateAllClients(): void {
-		for(let client of this.connections) {
-			let message: VServerMessageDTO = {
-				ClientId: client.ConnectionId,
-				RequestId: undefined,
-				Action: ServerActionRPC.UpdateMessages,
-				Payload: this.ChatServer.GetMessages()
-			};
-			client.Connection.sendUTF(JSON.stringify(message));
-		}
 	}
 }
 
