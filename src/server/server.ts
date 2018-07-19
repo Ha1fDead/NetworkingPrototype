@@ -9,6 +9,7 @@ import * as https from 'https';
 import * as http from 'http';
 import * as websocket from 'websocket';
 import ChatServer from './chatserver';
+import { ServerActionRPC } from '../shared/networkmodels/serveractionenum';
 
 const PUBLIC_DIRECTORY = '../../../www';
 const PUBLIC_DIRECTORY_FULL_PATH = Path.join(__dirname, PUBLIC_DIRECTORY);
@@ -83,6 +84,7 @@ export class HttpServer {
 		let initialConnectMessage: VServerMessageDTO = {
 			ClientId: connId,
 			RequestId: undefined,
+			Action: ServerActionRPC.SetClientId,
 			Payload: undefined
 		};
 
@@ -119,6 +121,7 @@ export class HttpServer {
 		return {
 			ClientId: clientId,
 			RequestId: requestId,
+			Action: undefined,
 			Payload: data
 		};
 	}
@@ -128,6 +131,7 @@ export class HttpServer {
 			let message: VServerMessageDTO = {
 				ClientId: client.ConnectionId,
 				RequestId: undefined,
+				Action: ServerActionRPC.UpdateMessages,
 				Payload: this.ChatServer.GetMessages()
 			};
 			client.Connection.sendUTF(JSON.stringify(message));

@@ -1,3 +1,4 @@
+import { ServerActionRPC } from './../shared/networkmodels/serveractionenum.js';
 import { NetworkListener } from './networking/networklistener';
 import { Message } from '../shared/message';
 import { NetworkingSocketService } from './networking/networkingsocketservice.js';
@@ -12,6 +13,10 @@ export class MessagingService implements NetworkListener {
 	constructor() {
 		this.networkingSocketService = new NetworkingSocketService();
 		this.networkingSocketService.RegisterListener(this);
+	}
+	
+	GetActionsHandledBy(): ServerActionRPC {
+		return ServerActionRPC.UpdateMessages;
 	}
 
 	public async SendMessage(message: Message): Promise<void> {

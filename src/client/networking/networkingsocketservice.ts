@@ -1,7 +1,8 @@
+import { ServerActionRPC } from './../../shared/networkmodels/serveractionenum.js';
 import { SOCKET_READY_STATE } from './socketstateenum.js';
 import { VClientRequestTracker } from './networkrequesttracker.js';
 import { NetworkListener } from './networklistener.js';
-import { VServerMessageDTO } from './../../shared/networkmodels/vservermessage.js';
+import { VServerMessageDTO, VServerPushDTO, VServerResponseDTO } from './../../shared/networkmodels/vservermessage.js';
 import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from '../../shared/constants.js';
 
 const DEFAULT_WEBSOCKET_RETRY_MS = 5000;
@@ -46,35 +47,40 @@ export class NetworkingSocketService {
 	 */
 	private OnSocketMessage(event: MessageEvent): void {
 		let serverMessage = <VServerMessageDTO>JSON.parse(event.data);
-		let serverRequestId = serverMessage.RequestId;
-
-		if(serverRequestId === undefined) {
-			if(this.clientId === null) {
-				this.clientId = serverMessage.ClientId;
-				this.SendQueuedRequests();
-			} else if(serverMessage.Payload !== undefined) {
-				// this is a server push data
-				// determine where to pipe this in via the object
-				for(let listener of this.Listeners) {
-					listener.OnReceiveServerPushData(serverMessage.Payload);
-				}
-				return;
-			} else {
-				console.log(`we received push data from the server, but cannot handle this case yet!`, event.data);
-			}
+		if(!this.IsResponse(serverMessage)) {
+			this.HandleServerPush(<VServerPushDTO>serverMessage);
 		} else {
-			// this is a response
-			let request = this.requestTrackers.find(reqTracker => reqTracker.GetRequestId() === serverRequestId);
-			if(request === undefined) {
-				throw new Error(`We received a request response from the server, but no associated request with id ${serverRequestId} could be found`);
-			}
-
-			request.ResolveRequest(serverMessage.Payload, this.requestTrackers);
+			this.HandleServerResponse(<VServerResponseDTO>serverMessage);
 		}
 	}
 
 	private OnSocketOpen(event: Event): void {
 		console.log('socket opened', event);
+	}
+
+	private HandleServerPush(message: VServerPushDTO): void {
+		if(message.Action === ServerActionRPC.SetClientId) {
+			this.clientId = message.ClientId;
+			this.SendQueuedRequests();
+		} else {
+			let listenersForAction = this.Listeners.filter(listener => listener.GetActionsHandledBy() === message.Action);
+			if(listenersForAction.length === 0) {
+				console.log(`We received push data from the server, but do not know how to handle it yet. (We could not find a network handler for this data action Id: ${message.Action})`);
+			}
+			for(let listener of listenersForAction) {
+				listener.OnReceiveServerPushData(message.Payload);
+			}
+			return;
+		}
+	}
+
+	private HandleServerResponse(message: VServerResponseDTO): void {
+		let request = this.requestTrackers.find(reqTracker => reqTracker.GetRequestId() === message.RequestId);
+		if(request === undefined) {
+			throw new Error(`We received a request response from the server, but no associated request with id ${message.RequestId} could be found`);
+		}
+
+		request.ResolveRequest(message.Payload, this.requestTrackers);
 	}
 
 	/**
@@ -123,6 +129,10 @@ export class NetworkingSocketService {
 		}
 
 		return requestTracker.GetPromise();
+	}
+
+	private IsResponse(serverMessage: VServerMessageDTO): boolean {
+		return serverMessage.RequestId !== undefined;
 	}
 
 	private uniqueRequestId = 0;
