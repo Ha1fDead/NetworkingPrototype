@@ -4,7 +4,7 @@ export default class ChatServer {
 	private numMessages: number = 0;
 
 	constructor() {
-		//this.createDefaultData();
+		this.createDefaultData();
 	}
 
 	private createDefaultData(): void {

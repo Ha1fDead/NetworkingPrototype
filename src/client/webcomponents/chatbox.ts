@@ -4,13 +4,22 @@ import { MessagingService } from '../messagingservice.js';
 import { VCustomElement } from './vcustomelement.js';
 const chatTemplate = document.createElement('template');
 chatTemplate.innerHTML = `
-	<div>
+	<div id="chatbox">
 		<p>Id, sent, received, contents</p>
-		<ul>
+		<ul id="chatlist">
 		</ul>
 
 		<input type="text" />
 	</div>
+`;
+
+const chatCSS = document.createElement('style');
+chatCSS.textContent = `
+	#chatlist {
+		max-height: 400px;
+		width: 650px;
+		overflow-y: scroll;
+	}
 `;
 
 // Unknown - how to handle dependencies in web components?
@@ -26,6 +35,7 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 
 		let shadow = this.attachShadow({ mode: 'open' });
 		shadow.appendChild(chatTemplate.content.cloneNode(true));
+		shadow.appendChild(chatCSS.cloneNode(true));
 		let textInput = <HTMLInputElement>(<ShadowRoot>this.shadowRoot).querySelector('input');
 		textInput.onkeypress = (event: KeyboardEvent) => {
 			if(event.key === "Enter") {
