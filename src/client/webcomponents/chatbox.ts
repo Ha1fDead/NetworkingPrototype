@@ -48,7 +48,7 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 
 		let networkingService = new NetworkingSocketService();
 		this.messagingService = new MessagingService(networkingService);
-		this.messagingService.RegisterCB(this.OnMessagesUpdate.bind(this));
+		this.messagingService.RegisterListener(this.OnMessagesUpdate.bind(this));
 	}
 
 	private OnMessagesUpdate(messages: Message[]): void {
