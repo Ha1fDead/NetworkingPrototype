@@ -73,7 +73,7 @@ export class NetworkingSocketService {
 				console.log(`We received push data from the server, but do not know how to handle it yet. (We could not find a network handler for this data action Id: ${message.Action})`);
 			}
 			for(let listener of listenersForAction) {
-				listener.OnReceiveServerPushData(message.Payload);
+				listener.HandleUpdate(message.Payload);
 			}
 		}
 	}

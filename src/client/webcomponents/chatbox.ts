@@ -26,8 +26,8 @@ chatCSS.textContent = `
 	// chatbox will need access to the ChatService
 	// but I don't think they can take in anything in the constructor
 	// https://github.com/w3c/webcomponents/issues/605
+// todo -- figure out inversion of control && dependency handling w/ webcomponents
 export default class ChatBox extends HTMLElement implements VCustomElement {
-	private _messages: Message[] = [];
 	private messagingService: MessagingService;
 
 	constructor() {
@@ -46,7 +46,6 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 			}
 		};
 
-		// todo -- figure out inversion of control w/ webcomponents
 		let networkingService = new NetworkingSocketService();
 		this.messagingService = new MessagingService(networkingService);
 		this.messagingService.RegisterCB(this.OnMessagesUpdate.bind(this));
@@ -66,15 +65,7 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 	}
 
 	HandleSubmitMessage(message: string): void {
-		// How can I synchronize messages between server and client?
-		// If server is updating the message and sending down updates, I need to say that "This message is for that message"
-		// this means that the message Ids must be generated on the client, where they originate, so the client can know where to map the response from the server
-
-		// I can either use a UUID function or use performance timings comparing the "DateSent"
-
-		// OR, since the server is already generating information, I have a static "ClientTransactionId" that controls which transaction a given websocket request is under
-		// This can incremenet by 1, and the Pair (ClientId, TransactionId) could still be guaranteed to be unique
-		// Then the server can generate a true UUID and the client doesn't need to worry about collisions!
+		// sender id would be the authentication token
 		let senderId = 1;
 		let messageToSend: Message = {
 			SenderId: senderId,

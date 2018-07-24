@@ -3,10 +3,12 @@ import { NetworkListener } from './networking/networklistener';
 import { Message } from '../shared/message';
 import { NetworkingSocketService } from './networking/networkingsocketservice.js';
 
+type MessageCallback = (m: Message[]) => void;
 
 export class MessagingService implements NetworkListener<Message[]> {
+
 	private messages: Message[] = [];
-	public OnMessageUpdateCBS: Function[] = [];
+	public MessageUpdateListeners: MessageCallback[] = [];
 
 	constructor(
 		private networkingSocketService: NetworkingSocketService) {
@@ -20,23 +22,25 @@ export class MessagingService implements NetworkListener<Message[]> {
 	public async SendMessage(message: Message): Promise<void> {
 		let res = await this.networkingSocketService.SendData<Message, Message>(message);
 		this.messages.push(res);
-		for(let cb of this.OnMessageUpdateCBS) {
-			cb(this.messages);
-		}
+		this.NotifyListeners();
 	}
 
-	OnReceiveServerPushData(data: Message[]): void {
+	HandleUpdate(data: Message[]): void {
 		this.messages = data;
-		for(let cb of this.OnMessageUpdateCBS) {
-			cb(this.messages);
-		}
+		this.NotifyListeners();
 	}
 
 	/**
 	 * In the future, this will be made into Observables. Maybe sooner than later.
 	 * @param cb 
 	 */
-	public RegisterCB(cb: Function) {
-		this.OnMessageUpdateCBS.push(cb);
+	public RegisterListener(cb: MessageCallback) {
+		this.MessageUpdateListeners.push(cb);
+	}
+
+	private NotifyListeners(): void {
+		for(let listenerCallback of this.MessageUpdateListeners) {
+			listenerCallback(this.messages);
+		}
 	}
 }
