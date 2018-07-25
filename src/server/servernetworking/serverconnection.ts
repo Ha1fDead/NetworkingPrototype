@@ -1,7 +1,7 @@
+import * as websocket from "websocket";
+import { ServerActionRPC } from "./../../shared/networkmodels/serveractionenum";
 import { IVClientRequestDTO } from "./../../shared/networkmodels/vclientrequest";
 import { IVServerPushDTO, IVServerResponseDTO } from "./../../shared/networkmodels/vservermessage";
-import { ServerActionRPC } from "./../../shared/networkmodels/serveractionenum";
-import * as websocket from "websocket";
 
 export default class ServerConnection {
 	constructor(

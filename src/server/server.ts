@@ -1,15 +1,14 @@
-import { IVClientRequestDTO } from "./../shared/networkmodels/vclientrequest";
-import { IVServerMessageDTO } from "./../shared/networkmodels/vservermessage";
-import { IMessage, IMessageDTOFromClient } from "./../shared/message";
-import { SERVER_SECURE_PORT, SERVER_INSECURE_PORT } from "./../shared/constants";
 import * as express from "express";
-import * as Path from "path";
 import * as fs from "fs";
-import * as https from "https";
 import * as http from "http";
+import * as https from "https";
+import * as Path from "path";
 import * as websocket from "websocket";
-import ChatServer from "./chatserver";
 import { ServerActionRPC } from "../shared/networkmodels/serveractionenum";
+import { SERVER_INSECURE_PORT, SERVER_SECURE_PORT } from "./../shared/constants";
+import { IMessageDTOFromClient } from "./../shared/message";
+import { IVClientRequestDTO } from "./../shared/networkmodels/vclientrequest";
+import ChatServer from "./chatserver";
 import ServerConnection from "./servernetworking/serverconnection";
 
 const PUBLIC_DIRECTORY = "../../../www";

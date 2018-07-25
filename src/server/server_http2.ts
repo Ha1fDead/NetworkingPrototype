@@ -1,7 +1,7 @@
-import { SERVER_SECURE_PORT } from "./../shared/constants";
-import * as Path from "path";
 import * as fs from "fs";
 import * as http2 from "http2";
+import * as Path from "path";
+import { SERVER_SECURE_PORT } from "./../shared/constants";
 
 const CGI_DIRECTORY = "../../cgi/client";
 const CLIENT_DATA_PATH = Path.join(__dirname, CGI_DIRECTORY);

@@ -1,7 +1,7 @@
-import { ServerActionRPC } from "./../shared/networkmodels/serveractionenum.js";
-import { INetworkListener } from "./networking/networklistener";
 import { IMessage, IMessageDTOFromClient, IMessageDTOFromServer } from "../shared/message";
+import { ServerActionRPC } from "./../shared/networkmodels/serveractionenum.js";
 import { NetworkingSocketService } from "./networking/networkingsocketservice.js";
+import { INetworkListener } from "./networking/networklistener";
 
 type MessageCallback = (m: IMessage[]) => void;
 

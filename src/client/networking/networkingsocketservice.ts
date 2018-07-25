@@ -1,9 +1,9 @@
+import { PATH_CHAT, SERVER_HOSTNAME, SERVER_INSECURE_PORT } from "../../shared/constants.js";
 import { ServerActionRPC } from "./../../shared/networkmodels/serveractionenum.js";
-import { SOCKET_READY_STATE } from "./socketstateenum.js";
-import { VClientRequestTracker } from "./networkrequesttracker.js";
-import { INetworkListener } from "./networklistener.js";
 import { IVServerMessageDTO, IVServerPushDTO, IVServerResponseDTO } from "./../../shared/networkmodels/vservermessage.js";
-import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from "../../shared/constants.js";
+import { INetworkListener } from "./networklistener.js";
+import { VClientRequestTracker } from "./networkrequesttracker.js";
+import { SOCKET_READY_STATE } from "./socketstateenum.js";
 
 const DEFAULT_WEBSOCKET_RETRY_MS = 5000;
 

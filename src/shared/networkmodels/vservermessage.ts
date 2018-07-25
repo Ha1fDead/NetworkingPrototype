@@ -1,6 +1,6 @@
 import { ServerActionRPC } from "./serveractionenum";
-import { IVServerMessageDTO } from "./vservermessage";
 import { IVNetworkTransmission } from "./vnetworktransmission";
+import { IVServerMessageDTO } from "./vservermessage";
 
 export interface IVServerMessageDTO<TPayload> extends IVNetworkTransmission {
 	/**

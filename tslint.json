@@ -48,9 +48,7 @@
             ]
         },
         // I find this to be very arbitrary. A lot of auto code gen just inserts spaces. Might be able to turn it off, but why bother?
-        "no-trailing-whitespace": false,
-        // temporary, I like this setting but want to automatically find a way to have VSCode do it for me. Otherwise its just annoying
-        "ordered-imports": false
+        "no-trailing-whitespace": false
     },
     "jsRules": {
         "max-line-length": {

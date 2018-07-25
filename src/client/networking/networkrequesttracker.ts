@@ -1,6 +1,6 @@
-import { SOCKET_READY_STATE } from "./socketstateenum.js";
 import DeferredPromise from "../../shared/deferredpromise.js";
 import { IVClientRequestDTO } from "../../shared/networkmodels/vclientrequest.js";
+import { SOCKET_READY_STATE } from "./socketstateenum.js";
 
 export class VClientRequestTracker<TRequest, TResponse> {
 	private DeferredPromise: DeferredPromise<TResponse>;
