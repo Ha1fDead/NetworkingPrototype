@@ -1,4 +1,4 @@
-export interface Message {
+export interface IMessage {
 	/**
 	 * The Id of the person who sent the message
 	 */
@@ -30,7 +30,7 @@ export interface Message {
 	ClientReceived: Date | null;
 }
 
-export interface MessageDTOFromServer {
+export interface IMessageDTOFromServer {
 	/**
 	 * The Id of the person who sent the message
 	 */
@@ -57,7 +57,7 @@ export interface MessageDTOFromServer {
 	ClientSent: Date;
 }
 
-export interface MessageDTOFromClient {
+export interface IMessageDTOFromClient {
 	/**
 	 * The actual contents of the message
 	 */

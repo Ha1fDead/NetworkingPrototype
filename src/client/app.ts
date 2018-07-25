@@ -1,8 +1,5 @@
 
 class App {
-	constructor() {
-
-	}
 }
 
-//let app = new MessagingService();
+// let app = new MessagingService()

@@ -1,13 +1,13 @@
-import { ServerActionRPC } from './../shared/networkmodels/serveractionenum.js';
-import { NetworkListener } from './networking/networklistener';
-import { Message, MessageDTOFromClient, MessageDTOFromServer } from '../shared/message';
-import { NetworkingSocketService } from './networking/networkingsocketservice.js';
+import { ServerActionRPC } from "./../shared/networkmodels/serveractionenum.js";
+import { INetworkListener } from "./networking/networklistener";
+import { IMessage, IMessageDTOFromClient, IMessageDTOFromServer } from "../shared/message";
+import { NetworkingSocketService } from "./networking/networkingsocketservice.js";
 
-type MessageCallback = (m: Message[]) => void;
+type MessageCallback = (m: IMessage[]) => void;
 
-export class MessagingService implements NetworkListener<Message[]> {
+export class MessagingService implements INetworkListener<IMessage[]> {
 
-	private messages: Message[] = [];
+	private messages: IMessage[] = [];
 	public MessageUpdateListeners: MessageCallback[] = [];
 
 	constructor(
@@ -15,30 +15,30 @@ export class MessagingService implements NetworkListener<Message[]> {
 		this.networkingSocketService.RegisterListener(this);
 	}
 	
-	GetActionsHandledBy(): ServerActionRPC {
+	public GetActionsHandledBy(): ServerActionRPC {
 		return ServerActionRPC.UpdateMessages;
 	}
 
 	public async SendMessage(message: string): Promise<void> {
-		let messageToSend: MessageDTOFromClient = {
+		const messageToSend: IMessageDTOFromClient = {
+			ClientSent: new Date(),
 			Contents: message,
-			ClientSent: new Date()
 		};
 
-		let clientMessage: Message = {
-			SenderId: 1,
-			MessageId: null,
-			ServerReceived: null,
-			Contents: message,
+		const clientMessage: IMessage = {
+			ClientReceived: new Date(),
 			ClientSent: messageToSend.ClientSent,
-			ClientReceived: new Date()
-		}
+			Contents: message,
+			MessageId: null,
+			SenderId: 1,
+			ServerReceived: null,
+		};
 		
 		this.messages.push(clientMessage);
 		this.messages.sort(this.SortMessages);
 		this.NotifyListeners();
 
-		let res = await this.networkingSocketService.SendData<MessageDTOFromClient, MessageDTOFromServer>(messageToSend);
+		const res = await this.networkingSocketService.SendData<IMessageDTOFromClient, IMessageDTOFromServer>(messageToSend);
 
 		clientMessage.SenderId = res.SenderId;
 		clientMessage.ServerReceived = res.ServerReceived;
@@ -47,9 +47,9 @@ export class MessagingService implements NetworkListener<Message[]> {
 		this.NotifyListeners();
 	}
 
-	HandleUpdate(data: Message[]): void {
-		let now = new Date();
-		for(let message of data.filter(msg => msg.ClientReceived === null)) {
+	public HandleUpdate(data: IMessage[]): void {
+		const now = new Date();
+		for (const message of data.filter((msg) => msg.ClientReceived === null)) {
 			message.ClientReceived = now;
 		}
 
@@ -66,30 +66,30 @@ export class MessagingService implements NetworkListener<Message[]> {
 		this.MessageUpdateListeners.push(cb);
 	}
 
-	private SortMessages(a: Message, b: Message) {
-		if(a.ClientReceived === null || b.ClientReceived === null) {
-			throw new Error('Message client received cannot be null on the client');
+	private SortMessages(a: IMessage, b: IMessage) {
+		if (a.ClientReceived === null || b.ClientReceived === null) {
+			throw new Error("Message client received cannot be null on the client");
 		}
 
 		// Sort by when the Client received the message first
 		// Then sort by Id
 		// If there is no Id, let the one that has an Id be sent first
 		// Otherwise it doesn't matter
-		if(a.ClientReceived < b.ClientReceived) {
+		if (a.ClientReceived < b.ClientReceived) {
 			return -1;
-		} else if(a.ClientReceived > b.ClientReceived) {
+		} else if (a.ClientReceived > b.ClientReceived) {
 			return 1;
 		}
 
-		if(a.MessageId === null) {
+		if (a.MessageId === null) {
 			return 1;
 		}
 
-		if(b.MessageId === null) {
+		if (b.MessageId === null) {
 			return 1;
 		}
 
-		if(a.MessageId < b.MessageId) {
+		if (a.MessageId < b.MessageId) {
 			return -1;
 		}
 
@@ -97,7 +97,7 @@ export class MessagingService implements NetworkListener<Message[]> {
 	}
 
 	private NotifyListeners(): void {
-		for(let listenerCallback of this.MessageUpdateListeners) {
+		for (const listenerCallback of this.MessageUpdateListeners) {
 			listenerCallback(this.messages);
 		}
 	}

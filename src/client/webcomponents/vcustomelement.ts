@@ -6,7 +6,7 @@
  * 
  * https://developers.google.com/web/fundamentals/web-components/best-practices
  */
-export interface VCustomElement {
+export interface IVCustomElement {
 	/**
 	 * Invoked when the custom element is first connected to the document's DOM.
 	 */
@@ -23,9 +23,10 @@ export interface VCustomElement {
 	 * https://stackoverflow.com/questions/50995139/when-does-webcomponent-adoptedcallback-fire
 	 * 
 	 * TL&DR, don't worry about implementing this
+	 * 
+	 * adoptedCallback(): void;
 	 */
-	//adoptedCallback(): void;
-
+	
 	/**
 	 * Invoked when one of the custom element's attributes is added, removed, or changed.
 	 */

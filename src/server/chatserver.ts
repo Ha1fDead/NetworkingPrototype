@@ -1,6 +1,6 @@
-import { Message, MessageDTOFromClient } from './../shared/message';
+import { IMessage, IMessageDTOFromClient } from "./../shared/message";
 export default class ChatServer {
-	private messages: Message[] = [];
+	private messages: IMessage[] = [];
 	private numMessages: number = 0;
 
 	constructor() {
@@ -10,37 +10,37 @@ export default class ChatServer {
 	private createDefaultData(): void {
 		// proof of concept -- hydrate server messages with dummy data
 		// in the future this would obviously load from database or something
-		let unixMessageStart = new Date().getTime() - (1000 * 60 * 60 * 24 * 30); // one month ago
+		const unixMessageStart = new Date().getTime() - (1000 * 60 * 60 * 24 * 30); // one month ago
 		
 		const defaultMessageCount = 1000;
 		const dateOffset = 1000 * 60 * 60; // one hour
-		for(let x = 0; x < defaultMessageCount; x++) {
-			let message = `This is a random message ${x}`;
-			let sDate = new Date(unixMessageStart + (dateOffset * x));
-			let rDate = new Date(unixMessageStart + (dateOffset * x + 100));
+		for (let x = 0; x < defaultMessageCount; x++) {
+			const message = `This is a random message ${x}`;
+			const sDate = new Date(unixMessageStart + (dateOffset * x));
+			const rDate = new Date(unixMessageStart + (dateOffset * x + 100));
 			this.messages.push(this.createdefaultmessage(this.getMessageUUID(), 0, message, sDate, rDate));
 		}
 	}
 
-	private createdefaultmessage(mId: number, sId: number, message: string, sDate: Date, rDate: Date): Message {
+	private createdefaultmessage(mId: number, sId: number, message: string, sDate: Date, rDate: Date): IMessage {
 		return {
+			ClientReceived: null,
+			ClientSent: sDate,
+			Contents: message,
 			MessageId: mId,
 			SenderId: sId,
-			Contents: message,
-			ClientSent: sDate,
 			ServerReceived: rDate,
-			ClientReceived: null
-		}
+		};
 	}
 
-	HandleReceiveMessage(message: MessageDTOFromClient): Message {
-		let mappedMessage: Message = {
-			SenderId: 999, // will eventually be taken from authentication
-			Contents: message.Contents,
+	public HandleReceiveMessage(message: IMessageDTOFromClient): IMessage {
+		const mappedMessage: IMessage = {
+			ClientReceived: null,
 			ClientSent: message.ClientSent,
+			Contents: message.Contents,
 			MessageId: this.getMessageUUID(),
+			SenderId: 999, // will eventually be taken from authentication
 			ServerReceived: new Date(),
-			ClientReceived: null
 		};
 		this.messages.push(mappedMessage);
 		return mappedMessage;
@@ -53,7 +53,7 @@ export default class ChatServer {
 	 * 2. Get start of new room messages?
 	 * 3. Get messages from Date?
 	 */
-	GetMessages(): Message[] {
+	public GetMessages(): IMessage[] {
 		return this.messages;
 	}
 

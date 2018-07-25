@@ -1,9 +1,9 @@
-import { ServerActionRPC } from './../../shared/networkmodels/serveractionenum.js';
+import { ServerActionRPC } from "./../../shared/networkmodels/serveractionenum.js";
 
 /**
  * More or less RxJS pattern
  */
-export interface Subject<TListen> {
+export interface ISubject<TListen> {
 	RegisterListener(callback: TListen): void;
 
 	UnregisterListener(id: number): void;
@@ -12,7 +12,7 @@ export interface Subject<TListen> {
 /**
  * More or less RxJS pattern
  */
-export interface Observable<TObserve> {
+export interface IObservable<TObserve> {
 	HandleUpdate(data: TObserve): void;
 }
 
@@ -23,6 +23,6 @@ export interface Observable<TObserve> {
  * 
  * How does this interact with Serializers / Deserializers?
  */
-export interface NetworkListener<TServerPayload> extends Observable<TServerPayload>{
+export interface INetworkListener<TServerPayload> extends IObservable<TServerPayload> {
 	GetActionsHandledBy(): ServerActionRPC;
 }

@@ -1,32 +1,28 @@
-import { VClientRequestDTO } from './../shared/networkmodels/vclientrequest';
-import { VServerMessageDTO } from './../shared/networkmodels/vservermessage';
-import { Message, MessageDTOFromClient } from './../shared/message';
-import { SERVER_SECURE_PORT, SERVER_INSECURE_PORT } from './../shared/constants';
-import * as express from 'express';
-import * as Path from 'path';
-import * as fs from 'fs';
-import * as https from 'https';
-import * as http from 'http';
-import * as websocket from 'websocket';
-import ChatServer from './chatserver';
-import { ServerActionRPC } from '../shared/networkmodels/serveractionenum';
-import ServerConnection from './servernetworking/serverconnection';
+import { IVClientRequestDTO } from "./../shared/networkmodels/vclientrequest";
+import { IVServerMessageDTO } from "./../shared/networkmodels/vservermessage";
+import { IMessage, IMessageDTOFromClient } from "./../shared/message";
+import { SERVER_SECURE_PORT, SERVER_INSECURE_PORT } from "./../shared/constants";
+import * as express from "express";
+import * as Path from "path";
+import * as fs from "fs";
+import * as https from "https";
+import * as http from "http";
+import * as websocket from "websocket";
+import ChatServer from "./chatserver";
+import { ServerActionRPC } from "../shared/networkmodels/serveractionenum";
+import ServerConnection from "./servernetworking/serverconnection";
 
-const PUBLIC_DIRECTORY = '../../../www';
+const PUBLIC_DIRECTORY = "../../../www";
 const PUBLIC_DIRECTORY_FULL_PATH = Path.join(__dirname, PUBLIC_DIRECTORY);
-const SERVER_DIRECTORY = '../../';
+const SERVER_DIRECTORY = "../../";
 const SERVER_DIRECTORY_PATH = Path.join(__dirname, SERVER_DIRECTORY);
-const SERVER_KEY_PATH = Path.join(SERVER_DIRECTORY_PATH, 'key.pem');
-const SERVER_CERT_PATH = Path.join(SERVER_DIRECTORY_PATH, 'cert.pem');
+const SERVER_KEY_PATH = Path.join(SERVER_DIRECTORY_PATH, "key.pem");
+const SERVER_CERT_PATH = Path.join(SERVER_DIRECTORY_PATH, "cert.pem");
 
 const certificate = {
-    key: fs.readFileSync(SERVER_KEY_PATH),
-    cert:  fs.readFileSync(SERVER_CERT_PATH)
+	cert:  fs.readFileSync(SERVER_CERT_PATH),
+	key: fs.readFileSync(SERVER_KEY_PATH),
 };
-
-export class App {
-	private server = new HttpServer();
-}
 
 export class HttpServer {
 	private httpServer: http.Server;
@@ -35,33 +31,33 @@ export class HttpServer {
 	private connections: ServerConnection[] = [];
 
 	constructor() {
-		let server = express();
+		const server = express();
 		server.use(express.static(PUBLIC_DIRECTORY_FULL_PATH));
 		
-		this.httpServer = http.createServer(function (req, res) {
-			let redirectUrl = `https://${req.headers}['host']:${SERVER_SECURE_PORT}${req.url}`;
-			res.writeHead(301, { "Location": redirectUrl });
+		this.httpServer = http.createServer((req, res) => {
+			const redirectUrl = `https://${req.headers}["host"]:${SERVER_SECURE_PORT}${req.url}`;
+			res.writeHead(301, { Location: redirectUrl });
 			res.end();
 		}).listen(SERVER_INSECURE_PORT);
 
-		var wsServer = new websocket.server({
+		const wsServer = new websocket.server({
+			autoAcceptConnections: true, // You should use false here!
 			httpServer: this.httpServer,
-			autoAcceptConnections: true // You should use false here!
 		});
 
-		wsServer.on('connect', this.HandleNewConnection.bind(this));
+		wsServer.on("connect", this.HandleNewConnection.bind(this));
 
-		wsServer.on('close', (request) => {
-			let closedConnections = this.connections.filter(conn => conn.ShouldCloseConnection());
-			for(let closedConn of closedConnections) {
+		wsServer.on("close", (request) => {
+			const closedConnections = this.connections.filter((conn) => conn.ShouldCloseConnection());
+			for (const closedConn of closedConnections) {
 				closedConn.CloseConnection(this.connections);
 			}
 
 			// broadcast update to all clients that a person has "Logged Out"
 		});
 
-		wsServer.on('request', (request) => {
-			console.log('ws request?');
+		wsServer.on("request", (request) => {
+			console.log("ws request?");
 		});
 
 		this.httpsServer = https.createServer(certificate, server);
@@ -69,19 +65,19 @@ export class HttpServer {
 	}
 
 	private HandleNewConnection(connection: websocket.connection): void {
-		let connId = this.getUniqueClientId();
-		let connectedClient = new ServerConnection(connection, connId);
+		const connId = this.getUniqueClientId();
+		const connectedClient = new ServerConnection(connection, connId);
 		this.connections.push(connectedClient);
 		connectedClient.PushData(ServerActionRPC.SetClientId);
 		connectedClient.PushData(ServerActionRPC.UpdateMessages, this.ChatServer.GetMessages());
-		connection.on('message', (data) => {
+		connection.on("message", (data) => {
 			this.HandleNewMessage(connection, data);
 		});
 	}
 	
 	private HandleNewMessage(connection: websocket.connection, data: websocket.IMessage): void {
-		if(data.utf8Data === undefined) {
-			throw new Error('I dont support this use case yet');
+		if (data.utf8Data === undefined) {
+			throw new Error("I dont support this use case yet");
 		}
 		
 		/**
@@ -89,17 +85,17 @@ export class HttpServer {
 		 * 
 		 * It would also be a good idea to desynchronize the Receiving a message from sending a Response
 		 */
-		let request = <VClientRequestDTO<MessageDTOFromClient>>JSON.parse(data.utf8Data);
-		let message = request.RequestData;
-		let mappedMessage = this.ChatServer.HandleReceiveMessage(message);
+		const request = JSON.parse(data.utf8Data) as IVClientRequestDTO<IMessageDTOFromClient>;
+		const message = request.RequestData;
+		const mappedMessage = this.ChatServer.HandleReceiveMessage(message);
 
-		let serverConn = this.connections.find(conn => conn.GetClientId() === request.ClientId);
-		if(serverConn === undefined) {
-			throw new Error('Received a message from a client that does not have a client id!!!');
+		const serverConn = this.connections.find((conn) => conn.GetClientId() === request.ClientId);
+		if (serverConn === undefined) {
+			throw new Error("Received a message from a client that does not have a client id!!!");
 		}
 
 		serverConn.SendResponse(request, mappedMessage);
-		for(let conn of this.connections) {
+		for (const conn of this.connections) {
 			conn.PushData(ServerActionRPC.UpdateMessages, this.ChatServer.GetMessages());
 		}
 	}
@@ -110,5 +106,3 @@ export class HttpServer {
 		return this.numClients;
 	}
 }
-
-let app = new App();

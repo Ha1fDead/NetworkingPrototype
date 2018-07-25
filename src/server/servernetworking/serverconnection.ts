@@ -1,7 +1,7 @@
-import { VClientRequestDTO } from './../../shared/networkmodels/vclientrequest';
-import { VServerPushDTO, VServerResponseDTO } from './../../shared/networkmodels/vservermessage';
-import { ServerActionRPC } from './../../shared/networkmodels/serveractionenum';
-import * as websocket from 'websocket';
+import { IVClientRequestDTO } from "./../../shared/networkmodels/vclientrequest";
+import { IVServerPushDTO, IVServerResponseDTO } from "./../../shared/networkmodels/vservermessage";
+import { ServerActionRPC } from "./../../shared/networkmodels/serveractionenum";
+import * as websocket from "websocket";
 
 export default class ServerConnection {
 	constructor(
@@ -10,44 +10,44 @@ export default class ServerConnection {
 			console.log(`New Client connected: ${this.ClientId}`);
 	}
 
-	GetClientId(): number {
+	public GetClientId(): number {
 		return this.ClientId;
 	}
 
-	PushData<TPayload>(action: ServerActionRPC, payload: TPayload | undefined = undefined): void {
-		let initialConnectMessage: VServerPushDTO<TPayload | undefined> = {
-			ClientId: this.ClientId,
-			RequestId: undefined,
+	public PushData<TPayload>(action: ServerActionRPC, payload?: TPayload): void {
+		const initialConnectMessage: IVServerPushDTO<TPayload | undefined> = {
 			Action: action,
-			Payload: payload
-		};
-
-		let strData = JSON.stringify(initialConnectMessage);
-		this.SendData(strData);
-	}
-
-	SendResponse<TRequest, TPayload>(request: VClientRequestDTO<TRequest>, payload: TPayload): void {
-		let responseMessage: VServerResponseDTO<TPayload> = {
 			ClientId: this.ClientId,
-			Action: undefined,
-			RequestId: request.RequestId,
-			Payload: payload
+			Payload: payload,
+			RequestId: undefined,
 		};
 
-		let strData = JSON.stringify(responseMessage);
+		const strData = JSON.stringify(initialConnectMessage);
 		this.SendData(strData);
 	}
 
-	ShouldCloseConnection(): boolean {
+	public SendResponse<TRequest, TPayload>(request: IVClientRequestDTO<TRequest>, payload: TPayload): void {
+		const responseMessage: IVServerResponseDTO<TPayload> = {
+			Action: undefined,
+			ClientId: this.ClientId,
+			Payload: payload,
+			RequestId: request.RequestId,
+		};
+
+		const strData = JSON.stringify(responseMessage);
+		this.SendData(strData);
+	}
+
+	public ShouldCloseConnection(): boolean {
 		return this.Connection.connected === false;
 	}
 
-	CloseConnection(serverConnections: ServerConnection[]): void {
+	public CloseConnection(serverConnections: ServerConnection[]): void {
 		serverConnections.splice(serverConnections.indexOf(this), 1);
 	}
 
 	private SendData(stringified: string): void {
-		let randomTimeout = Math.random() * 3000;
+		const randomTimeout = Math.random() * 3000;
 		setTimeout(() => {
 			this.Connection.send(stringified);
 		}, randomTimeout);

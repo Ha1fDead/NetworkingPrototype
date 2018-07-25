@@ -1,27 +1,36 @@
 {
     "extends": "tslint:recommended",
     "rules": {
-		"class-name": true,
-		"indent": [true, "tabs"],
-        "max-line-length": {
-            "options": [120]
-        },
-        "member-ordering": [
+        // temporary -- not sure if I like the recommended settings
+        "array-type": false,
+        "class-name": true,
+        "indent": [
             true,
-            {
-                "order": [
-                    "public-static-field",
-                    "public-instance-field",
-                    "public-constructor",
-                    "private-static-field",
-                    "private-instance-field",
-                    "private-constructor",
-                    "public-instance-method",
-                    "protected-instance-method",
-                    "private-instance-method"
-                ]
-            }
+            "tabs"
         ],
+        "max-line-length": {
+            "options": [
+                160
+            ]
+        },
+        // temporary, I REALLY like this but want to clean up the more arbitrary things first
+        "member-ordering": false,
+        // "member-ordering": [
+        //     true,
+        //     {
+        //         "order": [
+        //             "public-static-field",
+        //             "public-instance-field",
+        //             "public-constructor",
+        //             "private-static-field",
+        //             "private-instance-field",
+        //             "private-constructor",
+        //             "public-instance-method",
+        //             "protected-instance-method",
+        //             "private-instance-method"
+        //         ]
+        //     }
+        // ],
         "new-parens": true,
         "no-arg": true,
         "no-bitwise": true,
@@ -37,11 +46,17 @@
                 "timeEnd",
                 "trace"
             ]
-        }
+        },
+        // I find this to be very arbitrary. A lot of auto code gen just inserts spaces. Might be able to turn it off, but why bother?
+        "no-trailing-whitespace": false,
+        // temporary, I like this setting but want to automatically find a way to have VSCode do it for me. Otherwise its just annoying
+        "ordered-imports": false
     },
     "jsRules": {
         "max-line-length": {
-            "options": [120]
+            "options": [
+                120
+            ]
         }
     }
 }

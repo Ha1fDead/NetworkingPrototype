@@ -4,9 +4,10 @@
   "description": "threejs prototype",
   "main": "app.ts",
   "scripts": {
-    "compile": "tsc -p ./src/client/tsconfig.json && tsc -p ./src/server/tsconfig.json",
+    "lint": "tslint --project src/client/tsconfig.json & tslint --project src/server/tsconfig.json",
+    "compile": "npm run lint && tsc -p ./src/client/tsconfig.json && tsc -p ./src/server/tsconfig.json",
     "dev": "tsc -p ./src/client/tsconfig.json -w && tsc -p ./src/server/tsconfig.json -w",
-    "start": "node ./server/cgi/server/server.js"
+    "start": "node ./server/cgi/server/app.js"
   },
   "author": "",
   "license": "ISC",

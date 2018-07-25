@@ -12,5 +12,5 @@ export enum ServerActionRPC {
 	 */
 	SetClientId,
 	
-	UpdateMessages
-};
+	UpdateMessages,
+}

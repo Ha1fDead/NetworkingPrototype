@@ -1,33 +1,33 @@
-import { ServerActionRPC } from './serveractionenum';
-import { VServerMessageDTO } from './vservermessage';
-import { VNetworkTransmission } from "./vnetworktransmission";
+import { ServerActionRPC } from "./serveractionenum";
+import { IVServerMessageDTO } from "./vservermessage";
+import { IVNetworkTransmission } from "./vnetworktransmission";
 
-export interface VServerMessageDTO<TPayload> extends VNetworkTransmission {
+export interface IVServerMessageDTO<TPayload> extends IVNetworkTransmission {
 	/**
 	 * Undefined if the Server is sending push data, otherwise if it is defined this is a response to a request
 	 */
-	RequestId: number | undefined,
+	RequestId: number | undefined;
 
 	/**
 	 * Null if this is a response
 	 */
-	Action: ServerActionRPC | undefined,
+	Action: ServerActionRPC | undefined;
 
-	Payload: TPayload
+	Payload: TPayload;
 }
 
-export interface VServerPushDTO<TPayload> extends VServerMessageDTO<TPayload> {
-	Action: ServerActionRPC,
+export interface IVServerPushDTO<TPayload> extends IVServerMessageDTO<TPayload> {
+	Action: ServerActionRPC;
 
-	RequestId: undefined,
+	RequestId: undefined;
 
-	Payload: TPayload
+	Payload: TPayload;
 }
 
-export interface VServerResponseDTO<TPayload> extends VServerMessageDTO<TPayload> {
-	RequestId: number,
+export interface IVServerResponseDTO<TPayload> extends IVServerMessageDTO<TPayload> {
+	RequestId: number;
 
-	Action: undefined,
+	Action: undefined;
 
-	Payload: TPayload
+	Payload: TPayload;
 }

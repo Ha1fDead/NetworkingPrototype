@@ -1,9 +1,9 @@
-import { ServerActionRPC } from './../../shared/networkmodels/serveractionenum.js';
-import { SOCKET_READY_STATE } from './socketstateenum.js';
-import { VClientRequestTracker } from './networkrequesttracker.js';
-import { NetworkListener } from './networklistener.js';
-import { VServerMessageDTO, VServerPushDTO, VServerResponseDTO } from './../../shared/networkmodels/vservermessage.js';
-import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from '../../shared/constants.js';
+import { ServerActionRPC } from "./../../shared/networkmodels/serveractionenum.js";
+import { SOCKET_READY_STATE } from "./socketstateenum.js";
+import { VClientRequestTracker } from "./networkrequesttracker.js";
+import { INetworkListener } from "./networklistener.js";
+import { IVServerMessageDTO, IVServerPushDTO, IVServerResponseDTO } from "./../../shared/networkmodels/vservermessage.js";
+import { SERVER_HOSTNAME, PATH_CHAT, SERVER_INSECURE_PORT } from "../../shared/constants.js";
 
 const DEFAULT_WEBSOCKET_RETRY_MS = 5000;
 
@@ -26,14 +26,14 @@ export class NetworkingSocketService {
 	/**
 	 * I don't like the <any> here but I cannot think of an alternative
 	 */
-	private Listeners: NetworkListener<any>[] = [];
+	private Listeners: INetworkListener<any>[] = [];
 
 	constructor() {
 		this.requestTrackers = [];
 		this.CreateWebsocket();
 	}
 
-	public RegisterListener<TServerPayload>(listener: NetworkListener<TServerPayload>): void {
+	public RegisterListener<TServerPayload>(listener: INetworkListener<TServerPayload>): void {
 		this.Listeners.push(listener);
 	}
 
@@ -51,11 +51,11 @@ export class NetworkingSocketService {
 	 * @param event 
 	 */
 	private OnSocketMessage(event: MessageEvent): void {
-		let serverMessage = <VServerMessageDTO<any>>JSON.parse(event.data);
-		if(this.IsResponse(serverMessage)) {
-			this.HandleServerResponse(<VServerResponseDTO<any>>serverMessage);
+		const serverMessage = JSON.parse(event.data) as IVServerMessageDTO<any>;
+		if (this.IsResponse(serverMessage)) {
+			this.HandleServerResponse(serverMessage as IVServerResponseDTO<any>);
 		} else {
-			this.HandleServerPush(<VServerPushDTO<any>>serverMessage);
+			this.HandleServerPush(serverMessage as IVServerPushDTO<any>);
 		}
 	}
 
@@ -63,24 +63,26 @@ export class NetworkingSocketService {
 		// don't actually do anything on socket open, since we wait for the Server to send us our Client id.
 	}
 
-	private HandleServerPush(message: VServerPushDTO<any>): void {
-		if(message.Action === ServerActionRPC.SetClientId) {
+	private HandleServerPush(message: IVServerPushDTO<any>): void {
+		if (message.Action === ServerActionRPC.SetClientId) {
 			this.clientId = message.ClientId;
 			this.SendQueuedRequests();
 		} else {
-			let listenersForAction = this.Listeners.filter(listener => listener.GetActionsHandledBy() === message.Action);
-			if(listenersForAction.length === 0) {
-				console.log(`We received push data from the server, but do not know how to handle it yet. (We could not find a network handler for this data action Id: ${message.Action})`);
+			const listenersForAction = this.Listeners.filter((listener) => listener.GetActionsHandledBy() === message.Action);
+			if (listenersForAction.length === 0) {
+				console.log(
+					`We received push data from the server, but do not know how to handle it yet. 
+					(We could not find a network handler for this data action Id: ${message.Action})`);
 			}
-			for(let listener of listenersForAction) {
+			for (const listener of listenersForAction) {
 				listener.HandleUpdate(message.Payload);
 			}
 		}
 	}
 
-	private HandleServerResponse(message: VServerResponseDTO<any>): void {
-		let request = this.requestTrackers.find(reqTracker => reqTracker.GetRequestId() === message.RequestId);
-		if(request === undefined) {
+	private HandleServerResponse(message: IVServerResponseDTO<any>): void {
+		const request = this.requestTrackers.find((reqTracker) => reqTracker.GetRequestId() === message.RequestId);
+		if (request === undefined) {
 			throw new Error(`We received a request response from the server, but no associated request with id ${message.RequestId} could be found`);
 		}
 
@@ -93,27 +95,27 @@ export class NetworkingSocketService {
 	 */
 	private OnSocketClose(event: CloseEvent): void {
 		// TODO - if a socket closes, we need to requeue all of the requests that were executing.
-		console.log('socket closed', event);
+		console.log("socket closed", event);
 		setTimeout(() => {
 			// retrying to connect
 			this.CreateWebsocket();
-		}, DEFAULT_WEBSOCKET_RETRY_MS)
+		}, DEFAULT_WEBSOCKET_RETRY_MS);
 	}
 
 	private OnSocketError(event: Event): void {
-		console.log('socket error', event);
+		console.log("socket error", event);
 	}
 
 	private SendQueuedRequests(): void {
-		if(this.clientId === null) {
-			throw new Error('Cannot send request tracker without a client id');
+		if (this.clientId === null) {
+			throw new Error("Cannot send request tracker without a client id");
 		}
 
-		if(this.websocket.readyState !== SOCKET_READY_STATE.OPEN) {
-			throw new Error('Cannot send request tracker if the websocket is not currently open');
+		if (this.websocket.readyState !== SOCKET_READY_STATE.OPEN) {
+			throw new Error("Cannot send request tracker if the websocket is not currently open");
 		}
 
-		for(let queuedReq of this.requestTrackers.filter(track => track.GetHasSent() === false)) {
+		for (const queuedReq of this.requestTrackers.filter((track) => track.GetHasSent() === false)) {
 			queuedReq.SendRequest(this.clientId, this.websocket);
 		}
 	}
@@ -123,20 +125,20 @@ export class NetworkingSocketService {
 	 * @param data to be sent to the server
 	 */
 	public SendData<TRequest, TResponse>(data: TRequest): Promise<TResponse> {
-		let shouldSendImmediately = this.websocket.readyState === SOCKET_READY_STATE.OPEN && this.clientId !== null;
-		let requestTracker = new VClientRequestTracker<TRequest, TResponse>(this.GetUniqueRequestId(), data, shouldSendImmediately);
+		const shouldSendImmediately = this.websocket.readyState === SOCKET_READY_STATE.OPEN && this.clientId !== null;
+		const requestTracker = new VClientRequestTracker<TRequest, TResponse>(this.GetUniqueRequestId(), data, shouldSendImmediately);
 		this.requestTrackers.push(requestTracker);
 
-		if(this.clientId !== null && shouldSendImmediately) {
+		if (this.clientId !== null && shouldSendImmediately) {
 			requestTracker.SendRequest(this.clientId, this.websocket);
 		} else {
-			console.log('could not send data because socket is not open yet. Data will be sent after connection is reopened');
+			console.log("could not send data because socket is not open yet. Data will be sent after connection is reopened");
 		}
 
 		return requestTracker.GetPromise();
 	}
 
-	private IsResponse(serverMessage: VServerMessageDTO<any>): boolean {
+	private IsResponse(serverMessage: IVServerMessageDTO<any>): boolean {
 		return serverMessage.RequestId !== undefined;
 	}
 

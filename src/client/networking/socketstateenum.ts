@@ -6,5 +6,5 @@ export enum SOCKET_READY_STATE {
 	CONNECTION = 0,
 	OPEN = 1,
 	CLOSING = 2,
-	CLOSED = 3
+	CLOSED = 3,
 }

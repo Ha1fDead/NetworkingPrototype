@@ -1,19 +1,19 @@
 {
-    "compilerOptions": {
-        "allowJs": false,
-        "forceConsistentCasingInFileNames": true,
-        "module": "es2015",
-        "moduleResolution": "node",
-        "noImplicitAny": true,
-        "outDir": "../../www/dist",
-        "preserveConstEnums": true,
-        "pretty": true,
-        "removeComments": true,
-        "sourceMap": true,
-        "strict": true,
-        "target": "esnext",
-    },
-    "include": [
-        "./**/*"
-    ]
+	"compilerOptions": {
+		"allowJs": false,
+		"forceConsistentCasingInFileNames": true,
+		"module": "es2015",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"outDir": "../../www/dist",
+		"preserveConstEnums": true,
+		"pretty": true,
+		"removeComments": true,
+		"sourceMap": true,
+		"strict": true,
+		"target": "esnext",
+	},
+	"include": [
+		"./**/*"
+	]
 }
