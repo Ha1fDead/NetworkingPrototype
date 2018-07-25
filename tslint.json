@@ -1,8 +1,6 @@
 {
     "extends": "tslint:recommended",
     "rules": {
-        // temporary -- not sure if I like the recommended settings
-        "array-type": false,
         "class-name": true,
         "indent": [
             true,

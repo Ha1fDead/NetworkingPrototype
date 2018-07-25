@@ -28,7 +28,7 @@ export class VClientRequestTracker<TRequest, TResponse> {
 		return this.DeferredPromise.Promise;
 	}
 
-	public ResolveRequest(responseData: TResponse, requestTrackers: VClientRequestTracker<any, any>[]): void {
+	public ResolveRequest(responseData: TResponse, requestTrackers: Array<VClientRequestTracker<any, any>>): void {
 		this.DeferredPromise.deferredResolve(responseData);
 		requestTrackers.splice(requestTrackers.indexOf(this), 1);
 	}

@@ -16,7 +16,7 @@ export class NetworkingSocketService {
 	/**
 	 * I do not like the <any, any> here but cannot think of an alternative
 	 */
-	private requestTrackers: VClientRequestTracker<any, any>[];
+	private requestTrackers: Array<VClientRequestTracker<any, any>>;
 
 	/**
 	 * Definitely assigned via CreateWebSocket because you cannot reopen a closed websocket
@@ -26,7 +26,7 @@ export class NetworkingSocketService {
 	/**
 	 * I don't like the <any> here but I cannot think of an alternative
 	 */
-	private Listeners: INetworkListener<any>[] = [];
+	private Listeners: Array<INetworkListener<any>> = [];
 
 	private uniqueRequestId = 0;
 
