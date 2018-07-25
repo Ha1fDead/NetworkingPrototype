@@ -1,4 +1,4 @@
-import { Message } from './../shared/message';
+import { Message, MessageDTOFromClient } from './../shared/message';
 export default class ChatServer {
 	private messages: Message[] = [];
 	private numMessages: number = 0;
@@ -27,16 +27,23 @@ export default class ChatServer {
 			MessageId: mId,
 			SenderId: sId,
 			Contents: message,
-			Sent: sDate,
-			Received: rDate
+			ClientSent: sDate,
+			ServerReceived: rDate,
+			ClientReceived: null
 		}
 	}
 
-	StoreMessage(message: Message): void {
-		message.Received = new Date();
-		message.SenderId = 999; // eventually replace with "UserId" of the logged-in-user
-		message.MessageId = this.getMessageUUID();
-		this.messages.push(message);
+	HandleReceiveMessage(message: MessageDTOFromClient): Message {
+		let mappedMessage: Message = {
+			SenderId: 999, // will eventually be taken from authentication
+			Contents: message.Contents,
+			ClientSent: message.ClientSent,
+			MessageId: this.getMessageUUID(),
+			ServerReceived: new Date(),
+			ClientReceived: null
+		};
+		this.messages.push(mappedMessage);
+		return mappedMessage;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 import { NetworkingSocketService } from './../networking/networkingsocketservice.js';
-import { Message } from '../../shared/message.js';
+import { Message, MessageDTOFromClient } from '../../shared/message.js';
 import { MessagingService } from '../messagingservice.js';
 import { VCustomElement } from './vcustomelement.js';
 const chatTemplate = document.createElement('template');
@@ -59,23 +59,13 @@ export default class ChatBox extends HTMLElement implements VCustomElement {
 
 		for(let msg of messages) {
 			let li = document.createElement('li');
-			li.innerText = `${msg.MessageId} - ${msg.Sent} - ${msg.Received} - ${msg.Contents}`;
+			li.innerText = `${msg.MessageId} - ${msg.ClientSent} - ${msg.ServerReceived} - ${msg.Contents}`;
 			ulElement.appendChild(li);
 		}
 	}
 
 	HandleSubmitMessage(message: string): void {
-		// sender id would be the authentication token
-		let senderId = 1;
-		let messageToSend: Message = {
-			SenderId: senderId,
-			Contents: message,
-			Sent: new Date(),
-			MessageId: null,
-			Received: null
-		};
-
-		this.messagingService.SendMessage(messageToSend);
+		this.messagingService.SendMessage(message);
 	}
 
 	ConnectedCallback(): void {

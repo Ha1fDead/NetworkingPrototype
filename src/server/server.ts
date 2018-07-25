@@ -1,6 +1,6 @@
 import { VClientRequestDTO } from './../shared/networkmodels/vclientrequest';
 import { VServerMessageDTO } from './../shared/networkmodels/vservermessage';
-import { Message } from './../shared/message';
+import { Message, MessageDTOFromClient } from './../shared/message';
 import { SERVER_SECURE_PORT, SERVER_INSECURE_PORT } from './../shared/constants';
 import * as express from 'express';
 import * as Path from 'path';
@@ -86,17 +86,19 @@ export class HttpServer {
 		
 		/**
 		 * Similar to the client, we would eventually map to Handlers for calling RPCs
+		 * 
+		 * It would also be a good idea to desynchronize the Receiving a message from sending a Response
 		 */
-		let request = <VClientRequestDTO<Message>>JSON.parse(data.utf8Data);
+		let request = <VClientRequestDTO<MessageDTOFromClient>>JSON.parse(data.utf8Data);
 		let message = request.RequestData;
-		this.ChatServer.StoreMessage(message);
+		let mappedMessage = this.ChatServer.HandleReceiveMessage(message);
 
 		let serverConn = this.connections.find(conn => conn.GetClientId() === request.ClientId);
 		if(serverConn === undefined) {
 			throw new Error('Received a message from a client that does not have a client id!!!');
 		}
 
-		serverConn.SendResponse(request, message);
+		serverConn.SendResponse(request, mappedMessage);
 		for(let conn of this.connections) {
 			conn.PushData(ServerActionRPC.UpdateMessages, this.ChatServer.GetMessages());
 		}
