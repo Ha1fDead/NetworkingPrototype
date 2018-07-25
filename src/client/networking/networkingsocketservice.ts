@@ -28,9 +28,29 @@ export class NetworkingSocketService {
 	 */
 	private Listeners: INetworkListener<any>[] = [];
 
+	private uniqueRequestId = 0;
+
 	constructor() {
 		this.requestTrackers = [];
 		this.CreateWebsocket();
+	}
+
+	/**
+	 * 
+	 * @param data to be sent to the server
+	 */
+	public SendData<TRequest, TResponse>(data: TRequest): Promise<TResponse> {
+		const shouldSendImmediately = this.websocket.readyState === SOCKET_READY_STATE.OPEN && this.clientId !== null;
+		const requestTracker = new VClientRequestTracker<TRequest, TResponse>(this.GetUniqueRequestId(), data, shouldSendImmediately);
+		this.requestTrackers.push(requestTracker);
+
+		if (this.clientId !== null && shouldSendImmediately) {
+			requestTracker.SendRequest(this.clientId, this.websocket);
+		} else {
+			console.log("could not send data because socket is not open yet. Data will be sent after connection is reopened");
+		}
+
+		return requestTracker.GetPromise();
 	}
 
 	public RegisterListener<TServerPayload>(listener: INetworkListener<TServerPayload>): void {
@@ -120,29 +140,10 @@ export class NetworkingSocketService {
 		}
 	}
 
-	/**
-	 * 
-	 * @param data to be sent to the server
-	 */
-	public SendData<TRequest, TResponse>(data: TRequest): Promise<TResponse> {
-		const shouldSendImmediately = this.websocket.readyState === SOCKET_READY_STATE.OPEN && this.clientId !== null;
-		const requestTracker = new VClientRequestTracker<TRequest, TResponse>(this.GetUniqueRequestId(), data, shouldSendImmediately);
-		this.requestTrackers.push(requestTracker);
-
-		if (this.clientId !== null && shouldSendImmediately) {
-			requestTracker.SendRequest(this.clientId, this.websocket);
-		} else {
-			console.log("could not send data because socket is not open yet. Data will be sent after connection is reopened");
-		}
-
-		return requestTracker.GetPromise();
-	}
-
 	private IsResponse(serverMessage: IVServerMessageDTO<any>): boolean {
 		return serverMessage.RequestId !== undefined;
 	}
 
-	private uniqueRequestId = 0;
 	private GetUniqueRequestId(): number {
 		this.uniqueRequestId++;
 		return this.uniqueRequestId;

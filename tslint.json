@@ -13,8 +13,6 @@
                 160
             ]
         },
-        // temporary, I REALLY like this but want to clean up the more arbitrary things first
-        "member-ordering": false,
         // "member-ordering": [
         //     true,
         //     {
@@ -47,7 +45,8 @@
                 "trace"
             ]
         },
-        // I find this to be very arbitrary. A lot of auto code gen just inserts spaces. Might be able to turn it off, but why bother?
+        
+        // default setting of tslint. I don't like it because its arbitrary and, in conjunction with max length, causes me some headaches.
         "no-trailing-whitespace": false
     },
     "jsRules": {

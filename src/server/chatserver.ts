@@ -7,6 +7,30 @@ export default class ChatServer {
 		this.createDefaultData();
 	}
 
+	public HandleReceiveMessage(message: IMessageDTOFromClient): IMessage {
+		const mappedMessage: IMessage = {
+			ClientReceived: null,
+			ClientSent: message.ClientSent,
+			Contents: message.Contents,
+			MessageId: this.getMessageUUID(),
+			SenderId: 999, // will eventually be taken from authentication
+			ServerReceived: new Date(),
+		};
+		this.messages.push(mappedMessage);
+		return mappedMessage;
+	}
+
+	/**
+	 * Synchronization / paging concerns
+	 * 
+	 * 1. Get recent messages?
+	 * 2. Get start of new room messages?
+	 * 3. Get messages from Date?
+	 */
+	public GetMessages(): IMessage[] {
+		return this.messages;
+	}
+
 	private createDefaultData(): void {
 		// proof of concept -- hydrate server messages with dummy data
 		// in the future this would obviously load from database or something
@@ -31,30 +55,6 @@ export default class ChatServer {
 			SenderId: sId,
 			ServerReceived: rDate,
 		};
-	}
-
-	public HandleReceiveMessage(message: IMessageDTOFromClient): IMessage {
-		const mappedMessage: IMessage = {
-			ClientReceived: null,
-			ClientSent: message.ClientSent,
-			Contents: message.Contents,
-			MessageId: this.getMessageUUID(),
-			SenderId: 999, // will eventually be taken from authentication
-			ServerReceived: new Date(),
-		};
-		this.messages.push(mappedMessage);
-		return mappedMessage;
-	}
-
-	/**
-	 * Synchronization / paging concerns
-	 * 
-	 * 1. Get recent messages?
-	 * 2. Get start of new room messages?
-	 * 3. Get messages from Date?
-	 */
-	public GetMessages(): IMessage[] {
-		return this.messages;
 	}
 
 	private getMessageUUID(): number {

@@ -1,4 +1,4 @@
-import { IMessage, IMessageDTOFromClient } from "../../shared/message.js";
+import { IMessage } from "../../shared/message.js";
 import { MessagingService } from "../messagingservice.js";
 import { NetworkingSocketService } from "./../networking/networkingsocketservice.js";
 import { IVCustomElement } from "./vcustomelement.js";
@@ -51,19 +51,6 @@ export default class ChatBox extends HTMLElement implements IVCustomElement {
 		this.messagingService.RegisterListener(this.OnMessagesUpdate.bind(this));
 	}
 
-	private OnMessagesUpdate(messages: IMessage[]): void {
-		const ulElement = (this.shadowRoot as ShadowRoot).querySelector("ul") as HTMLUListElement;
-		while (ulElement.firstChild) {
-			ulElement.removeChild(ulElement.firstChild);
-		}
-
-		for (const msg of messages) {
-			const li = document.createElement("li");
-			li.innerText = `${msg.MessageId} - ${msg.ClientSent} - ${msg.ServerReceived} - ${msg.Contents}`;
-			ulElement.appendChild(li);
-		}
-	}
-
 	public HandleSubmitMessage(message: string): void {
 		this.messagingService.SendMessage(message);
 	}
@@ -76,6 +63,19 @@ export default class ChatBox extends HTMLElement implements IVCustomElement {
 	}
 	public AttributeChangedCallback(): void {
 		console.log("attribute changed");
+	}
+
+	private OnMessagesUpdate(messages: IMessage[]): void {
+		const ulElement = (this.shadowRoot as ShadowRoot).querySelector("ul") as HTMLUListElement;
+		while (ulElement.firstChild) {
+			ulElement.removeChild(ulElement.firstChild);
+		}
+
+		for (const msg of messages) {
+			const li = document.createElement("li");
+			li.innerText = `${msg.MessageId} - ${msg.ClientSent} - ${msg.ServerReceived} - ${msg.Contents}`;
+			ulElement.appendChild(li);
+		}
 	}
 }
 

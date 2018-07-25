@@ -6,9 +6,9 @@ import { INetworkListener } from "./networking/networklistener";
 type MessageCallback = (m: IMessage[]) => void;
 
 export class MessagingService implements INetworkListener<IMessage[]> {
+	public MessageUpdateListeners: MessageCallback[] = [];
 
 	private messages: IMessage[] = [];
-	public MessageUpdateListeners: MessageCallback[] = [];
 
 	constructor(
 		private networkingSocketService: NetworkingSocketService) {

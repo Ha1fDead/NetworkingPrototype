@@ -28,6 +28,7 @@ export class HttpServer {
 	private httpsServer: https.Server;
 	private ChatServer: ChatServer = new ChatServer();
 	private connections: ServerConnection[] = [];
+	private numClients: number = 0;
 
 	constructor() {
 		const server = express();
@@ -99,7 +100,6 @@ export class HttpServer {
 		}
 	}
 
-	private numClients: number = 0;
 	private getUniqueClientId(): number {
 		this.numClients++;
 		return this.numClients;
