@@ -24,10 +24,10 @@ const certificate = {
 };
 
 export class HttpServer {
-	private httpServer: http.Server;
-	private httpsServer: https.Server;
 	private ChatServer: ChatServer = new ChatServer();
 	private connections: ServerConnection[] = [];
+	private httpServer: http.Server;
+	private httpsServer: https.Server;
 	private numClients: number = 0;
 
 	constructor() {
@@ -64,6 +64,11 @@ export class HttpServer {
 		this.httpsServer.listen(SERVER_SECURE_PORT);
 	}
 
+	private getUniqueClientId(): number {
+		this.numClients++;
+		return this.numClients;
+	}
+
 	private HandleNewConnection(connection: websocket.connection): void {
 		const connId = this.getUniqueClientId();
 		const connectedClient = new ServerConnection(connection, connId);
@@ -98,10 +103,5 @@ export class HttpServer {
 		for (const conn of this.connections) {
 			conn.PushData(ServerActionRPC.UpdateMessages, this.ChatServer.GetMessages());
 		}
-	}
-
-	private getUniqueClientId(): number {
-		this.numClients++;
-		return this.numClients;
 	}
 }

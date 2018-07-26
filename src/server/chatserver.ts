@@ -7,6 +7,17 @@ export default class ChatServer {
 		this.createDefaultData();
 	}
 
+	/**
+	 * Synchronization / paging concerns
+	 * 
+	 * 1. Get recent messages?
+	 * 2. Get start of new room messages?
+	 * 3. Get messages from Date?
+	 */
+	public GetMessages(): IMessage[] {
+		return this.messages;
+	}
+
 	public HandleReceiveMessage(message: IMessageDTOFromClient): IMessage {
 		const mappedMessage: IMessage = {
 			ClientReceived: null,
@@ -18,17 +29,6 @@ export default class ChatServer {
 		};
 		this.messages.push(mappedMessage);
 		return mappedMessage;
-	}
-
-	/**
-	 * Synchronization / paging concerns
-	 * 
-	 * 1. Get recent messages?
-	 * 2. Get start of new room messages?
-	 * 3. Get messages from Date?
-	 */
-	public GetMessages(): IMessage[] {
-		return this.messages;
 	}
 
 	private createDefaultData(): void {

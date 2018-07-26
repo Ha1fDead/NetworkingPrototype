@@ -8,6 +8,11 @@
  */
 export interface IVCustomElement {
 	/**
+	 * Invoked when one of the custom element's attributes is added, removed, or changed.
+	 */
+	AttributeChangedCallback(): void;
+
+	/**
 	 * Invoked when the custom element is first connected to the document's DOM.
 	 */
 	ConnectedCallback(): void;
@@ -26,9 +31,4 @@ export interface IVCustomElement {
 	 * 
 	 * adoptedCallback(): void;
 	 */
-	
-	/**
-	 * Invoked when one of the custom element's attributes is added, removed, or changed.
-	 */
-	AttributeChangedCallback(): void;
 }

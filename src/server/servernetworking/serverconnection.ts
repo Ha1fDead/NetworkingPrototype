@@ -10,6 +10,10 @@ export default class ServerConnection {
 			console.log(`New Client connected: ${this.ClientId}`);
 	}
 
+	public CloseConnection(serverConnections: ServerConnection[]): void {
+		serverConnections.splice(serverConnections.indexOf(this), 1);
+	}
+
 	public GetClientId(): number {
 		return this.ClientId;
 	}
@@ -40,10 +44,6 @@ export default class ServerConnection {
 
 	public ShouldCloseConnection(): boolean {
 		return this.Connection.connected === false;
-	}
-
-	public CloseConnection(serverConnections: ServerConnection[]): void {
-		serverConnections.splice(serverConnections.indexOf(this), 1);
 	}
 
 	private SendData(stringified: string): void {

@@ -1,8 +1,18 @@
 export interface IMessage {
 	/**
-	 * The Id of the person who sent the message
+	 * The timestamp the message was received on the individual Client
 	 */
-	SenderId: number;
+	ClientReceived: Date | null;
+
+	/**
+	 * The timestamp the message was sent from the Client to the Server
+	 */
+	ClientSent: Date;
+
+	/**
+	 * The actual contents of the message
+	 */
+	Contents: string;
 
 	/**
 	 * The Id of the message itself
@@ -10,31 +20,26 @@ export interface IMessage {
 	MessageId: number | null;
 
 	/**
-	 * The actual contents of the message
+	 * The Id of the person who sent the message
 	 */
-	Contents: string;
+	SenderId: number;
 
+	/**
+	 * The timestamp the message was received on the Server
+	 */
+	ServerReceived: Date | null;
+}
+
+export interface IMessageDTOFromServer {
 	/**
 	 * The timestamp the message was sent from the Client to the Server
 	 */
 	ClientSent: Date;
 
 	/**
-	 * The timestamp the message was received on the Server
+	 * The actual contents of the message
 	 */
-	ServerReceived: Date | null;
-
-	/**
-	 * The timestamp the message was received on the individual Client
-	 */
-	ClientReceived: Date | null;
-}
-
-export interface IMessageDTOFromServer {
-	/**
-	 * The Id of the person who sent the message
-	 */
-	SenderId: number;
+	Contents: string;
 
 	/**
 	 * The Id of the message itself
@@ -42,29 +47,24 @@ export interface IMessageDTOFromServer {
 	MessageId: number;
 
 	/**
-	 * The actual contents of the message
+	 * The Id of the person who sent the message
 	 */
-	Contents: string;
+	SenderId: number;
 
 	/**
 	 * The timestamp the message was received on the Server
 	 */
 	ServerReceived: Date;
-
-	/**
-	 * The timestamp the message was sent from the Client to the Server
-	 */
-	ClientSent: Date;
 }
 
 export interface IMessageDTOFromClient {
 	/**
-	 * The actual contents of the message
-	 */
-	Contents: string;
-
-	/**
 	 * The timestamp the message was sent from the Client to the Server
 	 */
 	ClientSent: Date;
+
+	/**
+	 * The actual contents of the message
+	 */
+	Contents: string;
 }

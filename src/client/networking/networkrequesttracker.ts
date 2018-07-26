@@ -13,19 +13,20 @@ export class VClientRequestTracker<TRequest, TResponse> {
 			this.DeferredPromise = new DeferredPromise();
 	}
 
-	public GetRequestId(): number {
-		return this.RequestId;
-	}
 	public GetHasSent(): boolean {
 		return this.HasSent;
+	}
+
+	public GetPromise(): Promise<TResponse> {
+		return this.DeferredPromise.Promise;
 	}
 
 	public GetRequestData(): TRequest {
 		return this.RequestData;
 	}
 
-	public GetPromise(): Promise<TResponse> {
-		return this.DeferredPromise.Promise;
+	public GetRequestId(): number {
+		return this.RequestId;
 	}
 
 	public ResolveRequest(responseData: TResponse, requestTrackers: Array<VClientRequestTracker<any, any>>): void {

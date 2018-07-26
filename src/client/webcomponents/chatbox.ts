@@ -51,18 +51,20 @@ export default class ChatBox extends HTMLElement implements IVCustomElement {
 		this.messagingService.RegisterListener(this.OnMessagesUpdate.bind(this));
 	}
 
-	public HandleSubmitMessage(message: string): void {
-		this.messagingService.SendMessage(message);
+	public AttributeChangedCallback(): void {
+		console.log("attribute changed");
 	}
 
 	public ConnectedCallback(): void {
 		console.log("connected");
 	}
+
 	public DisconnectedCallback(): void {
 		console.log("disconnected");
 	}
-	public AttributeChangedCallback(): void {
-		console.log("attribute changed");
+
+	public HandleSubmitMessage(message: string): void {
+		this.messagingService.SendMessage(message);
 	}
 
 	private OnMessagesUpdate(messages: IMessage[]): void {

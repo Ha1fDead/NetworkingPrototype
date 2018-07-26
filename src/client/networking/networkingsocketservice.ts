@@ -14,25 +14,29 @@ export class NetworkingSocketService {
 	private clientId!: number | null;
 
 	/**
+	 * I don't like the <any> here but I cannot think of an alternative
+	 */
+	private Listeners: Array<INetworkListener<any>> = [];
+
+	/**
 	 * I do not like the <any, any> here but cannot think of an alternative
 	 */
 	private requestTrackers: Array<VClientRequestTracker<any, any>>;
+
+	private uniqueRequestId = 0;
 
 	/**
 	 * Definitely assigned via CreateWebSocket because you cannot reopen a closed websocket
 	 */
 	private websocket!: WebSocket;
 
-	/**
-	 * I don't like the <any> here but I cannot think of an alternative
-	 */
-	private Listeners: Array<INetworkListener<any>> = [];
-
-	private uniqueRequestId = 0;
-
 	constructor() {
 		this.requestTrackers = [];
 		this.CreateWebsocket();
+	}
+
+	public RegisterListener<TServerPayload>(listener: INetworkListener<TServerPayload>): void {
+		this.Listeners.push(listener);
 	}
 
 	/**
@@ -53,10 +57,6 @@ export class NetworkingSocketService {
 		return requestTracker.GetPromise();
 	}
 
-	public RegisterListener<TServerPayload>(listener: INetworkListener<TServerPayload>): void {
-		this.Listeners.push(listener);
-	}
-
 	private CreateWebsocket(): void {
 		this.clientId = null;
 		this.websocket = new WebSocket(`ws://${SERVER_HOSTNAME}:${SERVER_INSECURE_PORT}/${PATH_CHAT}`);
@@ -66,21 +66,9 @@ export class NetworkingSocketService {
 		this.websocket.onmessage = this.OnSocketMessage.bind(this);
 	}
 
-	/**
-	 * Message maps the received data to a "Transmission" to map it into a "Format" and then notify "Listners"
-	 * @param event 
-	 */
-	private OnSocketMessage(event: MessageEvent): void {
-		const serverMessage = JSON.parse(event.data) as IVServerMessageDTO<any>;
-		if (this.IsResponse(serverMessage)) {
-			this.HandleServerResponse(serverMessage as IVServerResponseDTO<any>);
-		} else {
-			this.HandleServerPush(serverMessage as IVServerPushDTO<any>);
-		}
-	}
-
-	private OnSocketOpen(event: Event): void {
-		// don't actually do anything on socket open, since we wait for the Server to send us our Client id.
+	private GetUniqueRequestId(): number {
+		this.uniqueRequestId++;
+		return this.uniqueRequestId;
 	}
 
 	private HandleServerPush(message: IVServerPushDTO<any>): void {
@@ -109,6 +97,10 @@ export class NetworkingSocketService {
 		request.ResolveRequest(message.Payload, this.requestTrackers);
 	}
 
+	private IsResponse(serverMessage: IVServerMessageDTO<any>): boolean {
+		return serverMessage.RequestId !== undefined;
+	}
+
 	/**
 	 * When a WebSocket is closed, either due to a timeout, server shutdown, or the App closing it itself, we should retry opening the connection
 	 * @param event 
@@ -126,6 +118,23 @@ export class NetworkingSocketService {
 		console.log("socket error", event);
 	}
 
+	/**
+	 * Message maps the received data to a "Transmission" to map it into a "Format" and then notify "Listners"
+	 * @param event 
+	 */
+	private OnSocketMessage(event: MessageEvent): void {
+		const serverMessage = JSON.parse(event.data) as IVServerMessageDTO<any>;
+		if (this.IsResponse(serverMessage)) {
+			this.HandleServerResponse(serverMessage as IVServerResponseDTO<any>);
+		} else {
+			this.HandleServerPush(serverMessage as IVServerPushDTO<any>);
+		}
+	}
+
+	private OnSocketOpen(event: Event): void {
+		// don't actually do anything on socket open, since we wait for the Server to send us our Client id.
+	}
+
 	private SendQueuedRequests(): void {
 		if (this.clientId === null) {
 			throw new Error("Cannot send request tracker without a client id");
@@ -138,14 +147,5 @@ export class NetworkingSocketService {
 		for (const queuedReq of this.requestTrackers.filter((track) => track.GetHasSent() === false)) {
 			queuedReq.SendRequest(this.clientId, this.websocket);
 		}
-	}
-
-	private IsResponse(serverMessage: IVServerMessageDTO<any>): boolean {
-		return serverMessage.RequestId !== undefined;
-	}
-
-	private GetUniqueRequestId(): number {
-		this.uniqueRequestId++;
-		return this.uniqueRequestId;
 	}
 }

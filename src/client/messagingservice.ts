@@ -19,6 +19,25 @@ export class MessagingService implements INetworkListener<IMessage[]> {
 		return ServerActionRPC.UpdateMessages;
 	}
 
+	public HandleUpdate(data: IMessage[]): void {
+		const now = new Date();
+		for (const message of data.filter((msg) => msg.ClientReceived === null)) {
+			message.ClientReceived = now;
+		}
+
+		this.messages = data;
+		this.messages.sort(this.SortMessages);
+		this.NotifyListeners();
+	}
+
+	/**
+	 * In the future, this will be made into Observables. Maybe sooner than later.
+	 * @param cb 
+	 */
+	public RegisterListener(cb: MessageCallback) {
+		this.MessageUpdateListeners.push(cb);
+	}
+
 	public async SendMessage(message: string): Promise<void> {
 		const messageToSend: IMessageDTOFromClient = {
 			ClientSent: new Date(),
@@ -47,23 +66,10 @@ export class MessagingService implements INetworkListener<IMessage[]> {
 		this.NotifyListeners();
 	}
 
-	public HandleUpdate(data: IMessage[]): void {
-		const now = new Date();
-		for (const message of data.filter((msg) => msg.ClientReceived === null)) {
-			message.ClientReceived = now;
+	private NotifyListeners(): void {
+		for (const listenerCallback of this.MessageUpdateListeners) {
+			listenerCallback(this.messages);
 		}
-
-		this.messages = data;
-		this.messages.sort(this.SortMessages);
-		this.NotifyListeners();
-	}
-
-	/**
-	 * In the future, this will be made into Observables. Maybe sooner than later.
-	 * @param cb 
-	 */
-	public RegisterListener(cb: MessageCallback) {
-		this.MessageUpdateListeners.push(cb);
 	}
 
 	private SortMessages(a: IMessage, b: IMessage) {
@@ -94,11 +100,5 @@ export class MessagingService implements INetworkListener<IMessage[]> {
 		}
 
 		return 1;
-	}
-
-	private NotifyListeners(): void {
-		for (const listenerCallback of this.MessageUpdateListeners) {
-			listenerCallback(this.messages);
-		}
 	}
 }
