@@ -1,5 +1,17 @@
 # Networking Prototype
 
+This prototype was built to teach me about Game Networking. Specifically:
+
+1. WebSockets. How to use them, make them, spin up / spin down, etc.
+2. First-ever forray into Network Collision (i.e. someone edits something when someone else deletes that thing)
+3. Http2
+
+I think that I largely succeeeded with the prototype. This is more academic than anything actually useful.
+
+## Project Notes
+
+(I decided to leave these in here so you could see into my workflow a little)
+
 Prototype Functionality Goals:
 
 - On a failed load, will retry
